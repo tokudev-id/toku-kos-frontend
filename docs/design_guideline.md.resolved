@@ -1,0 +1,253 @@
+# Design Guideline: TokuKosManagement
+
+Panduan ini menetapkan standar visual dan UX untuk seluruh *frontend* TokuKosManagement agar terasa **humanis, profesional, dan enterprise-grade** — bukan *template* generik AI.
+
+---
+
+## 1. Brand Personality & Voice
+
+| Aspek | Prinsip |
+| :--- | :--- |
+| **Persona** | Asisten properti yang cerdas, tenang, dan bisa diandalkan. Bukan robot, bukan sales agresif. |
+| **Nada Bicara** | Sopan-kasual. Bahasa Indonesia sehari-hari yang bersih, tanpa jargon teknis berlebihan. |
+| **Perasaan yang Ditimbulkan** | *"Saya paham bisnis saya sekarang."* — Kontrol, kejelasan, kepercayaan diri. |
+
+### Prinsip Copywriting
+
+- **Jangan gunakan kalimat generik.** Ganti *"Selamat datang di dashboard"* → *"Ini ringkasan kos Anda hari ini."*
+- **Gunakan kata kerja aktif yang spesifik.** Ganti *"Data berhasil disimpan"* → *"Kamar 101 sudah ditambahkan."*
+- **Hindari jargon berbahasa Inggris yang tidak perlu.** Pakai *"Tagihan"* bukan *"Invoice"* di UI (gunakan istilah Inggris hanya di area teknis/developer).
+- **Berikan konteks, bukan hanya data.** Tampilkan *"3 kamar kosong dari 12"* bukan hanya angka *"3"*.
+- **Error message harus membantu.** Ganti *"Terjadi kesalahan"* → *"Koneksi ke server terputus. Coba lagi dalam beberapa detik."*
+
+---
+
+## 2. Color System
+
+Sistem warna yang hangat dan profesional. Hindari warna primer mentah (pure red, blue, green).
+
+### Core Palette
+
+| Token | Hex | Penggunaan |
+| :--- | :--- | :--- |
+| `--brand-primary` | `#2563EB` | CTA utama, link, elemen interaktif aktif |
+| `--brand-primary-hover` | `#1D4ED8` | Hover state tombol utama |
+| `--brand-primary-soft` | `#EFF6FF` | Background highlight, badge info |
+| `--surface-bg` | `#F8FAFC` | Background halaman utama |
+| `--surface-card` | `#FFFFFF` | Card, modal, panel |
+| `--surface-sidebar` | `#1E293B` | Sidebar navigasi (dark) |
+| `--text-primary` | `#0F172A` | Heading, teks utama |
+| `--text-secondary` | `#64748B` | Label, keterangan, placeholder |
+| `--text-on-dark` | `#F1F5F9` | Teks di atas surface gelap (sidebar) |
+| `--border-default` | `#E2E8F0` | Border card, divider |
+| `--success` | `#16A34A` | Status lunas, kamar terisi |
+| `--warning` | `#F59E0B` | Jatuh tempo, perlu perhatian |
+| `--danger` | `#DC2626` | Gagal, tunggakan, status kritis |
+
+### Aturan Penggunaan Warna
+- Warna `--danger` **hanya** untuk situasi yang benar-benar kritis (saldo minus, pembayaran gagal). Jangan dipakai untuk setiap *error*.
+- Status netral menggunakan `--text-secondary` dengan ikon, bukan warna merah/hijau.
+- Kontras rasio minimum **4.5:1** untuk teks, **3:1** untuk elemen UI besar (WCAG AA).
+
+---
+
+## 3. Typography
+
+Gunakan **Inter** dari Google Fonts sebagai typeface tunggal. Alasan: netral, sangat terbaca, dan mendukung banyak *weight* serta bahasa.
+
+| Level | Size | Weight | Line Height | Penggunaan |
+| :--- | :--- | :--- | :--- | :--- |
+| **Display** | 30px | 700 (Bold) | 1.2 | Judul halaman utama (Dashboard) |
+| **H1** | 24px | 600 (Semibold) | 1.3 | Judul halaman/section |
+| **H2** | 20px | 600 | 1.3 | Sub-section, judul card |
+| **H3** | 16px | 600 | 1.4 | Label group, sub-judul card |
+| **Body** | 14px | 400 (Regular) | 1.5 | Teks paragraf, tabel |
+| **Small / Caption** | 12px | 400 | 1.4 | Timestamp, helper text |
+| **Button** | 14px | 500 (Medium) | 1 | Label tombol |
+
+### Aturan Tipografi
+- **Jangan pernah gunakan ALL CAPS** untuk body text. Hanya untuk badge status kecil (`LUNAS`, `AKTIF`).
+- Jarak antar paragraf: `0.75em`. Jangan terlalu rapat, jangan terlalu longgar.
+
+---
+
+## 4. Spacing & Grid System
+
+Berbasis **8px grid** untuk konsistensi.
+
+| Token | Nilai | Penggunaan |
+| :--- | :--- | :--- |
+| `--space-xs` | 4px | Gap ikon-ke-label |
+| `--space-sm` | 8px | Padding internal badge |
+| `--space-md` | 16px | Padding card, jarak antar elemen form |
+| `--space-lg` | 24px | Margin antar section |
+| `--space-xl` | 32px | Margin layout utama |
+| `--space-2xl` | 48px | Padding halaman |
+
+### Layout Grid
+- **Sidebar**: Fixed-width `256px` (collapsible ke `72px` ikon saja di mobile).
+- **Content area**: Max-width `1280px`, centered.
+- **Card grid**: `grid-template-columns: repeat(auto-fill, minmax(320px, 1fr))` dengan gap `--space-lg`.
+
+---
+
+## 5. Component Design Patterns
+
+### 5.1. Cards
+```
+┌────────────────────────────────┐
+│  Header (H3 + optional badge)  │
+│  ─────────────────────────────  │
+│  Content area                   │
+│  Metric / Data                  │
+│  ─────────────────────────────  │
+│  Footer (link atau timestamp)   │
+└────────────────────────────────┘
+```
+- Border: `1px solid var(--border-default)`
+- Border-radius: `12px`
+- Shadow: `0 1px 3px rgba(0,0,0,0.06)` — tipis, bukan tebal/dramatis.
+- Hover: Shadow meningkat menjadi `0 4px 12px rgba(0,0,0,0.08)` + `translateY(-1px)`.
+
+### 5.2. Tombol (Buttons)
+
+| Variant | Style | Kapan Digunakan |
+| :--- | :--- | :--- |
+| **Primary** | Solid `--brand-primary`, teks putih | Aksi utama (Simpan, Tambah) |
+| **Secondary** | Border `--brand-primary`, bg transparan | Aksi alternatif (Batal, Filter) |
+| **Ghost** | Tanpa border/bg, teks `--text-secondary` | Aksi minor (Lihat semua) |
+| **Danger** | Solid `--danger` | Aksi destruktif (Hapus data) |
+
+- Border-radius: `8px`.
+- Padding: `10px 20px`.
+- Ukuran minimum sentuh: `44px` tinggi (mobile-friendly).
+- Transisi hover: `150ms ease`.
+- **Selalu sertakan ikon kecil** di samping label untuk konteks visual (misal: ➕ Tambah Kamar).
+
+### 5.3. Forms & Inputs
+- Label **di atas** input, bukan di samping (lebih mudah di-scan).
+- Border-radius: `8px`.
+- Focus state: `2px solid var(--brand-primary)` + `box-shadow: 0 0 0 3px var(--brand-primary-soft)`.
+- Error state: Border `--danger` + pesan error di bawah input (bukan tooltip/alert).
+- Kelompokkan field terkait dalam section berlabel (misalnya: *"Informasi Kamar"*, *"Harga & Fasilitas"*).
+
+### 5.4. Tables
+- Gunakan **hanya untuk data tabular** (daftar penghuni, riwayat transaksi). Jangan pakai tabel untuk layout.
+- Header: Background `#F1F5F9`, font `--text-secondary`, uppercase 11px.
+- Baris genap: Background `#FAFBFC` (*zebra stripe* subtle).
+- Kolom aksi (Edit/Hapus): Selalu di kolom **paling kanan**.
+- Pada viewport < 768px: Transformasi tabel menjadi **stacked cards**.
+
+### 5.5. Status Badges
+
+| Status | Warna | Contoh |
+| :--- | :--- | :--- |
+| Aktif / Lunas | `--success` bg soft, teks solid | `● Lunas` |
+| Menunggu / Proses | `--warning` bg soft | `● Menunggu Verifikasi` |
+| Gagal / Tunggak | `--danger` bg soft | `● Menunggak` |
+| Non-aktif | `--text-secondary` bg soft | `● Tidak Aktif` |
+
+- Selalu menggunakan **dot indicator (●)** di depan label untuk aksesibilitas warna-buta.
+
+---
+
+## 6. Responsive Breakpoints
+
+| Breakpoint | Range | Layout |
+| :--- | :--- | :--- |
+| **Mobile** | < 640px | Sidebar tersembunyi (hamburger), single column |
+| **Tablet** | 640px – 1024px | Sidebar mini (ikon saja), 2-column grid |
+| **Desktop** | > 1024px | Sidebar penuh, multi-column grid |
+
+### Mobile-First Rules
+- Touch target minimum: `44×44px`.
+- Tidak ada **hover-only** information. Semua info penting harus terlihat tanpa hover.
+- Bottom navigation bar di mobile untuk navigasi utama (Dashboard, Properti, Keuangan, Profil).
+
+---
+
+## 7. Motion & Animation
+
+| Elemen | Durasi | Easing | Catatan |
+| :--- | :--- | :--- | :--- |
+| Hover tombol/card | 150ms | `ease-out` | Subtle scale/shadow saja |
+| Transisi halaman | 200ms | `ease-in-out` | Fade in content area |
+| Modal open | 250ms | `cubic-bezier(0.16, 1, 0.3, 1)` | Scale dari 0.95 → 1 + fade |
+| Skeleton loading | Loop | `ease-in-out` | Shimmer gradient pulse |
+| Toast notification | 300ms masuk, 5s tampil, 300ms keluar | `ease-out` | Slide-in dari kanan atas |
+
+### Prinsip Animasi
+- **Purposeful, not decorative.** Animasi harus menjelaskan transisi state, bukan memamerkan efek.
+- **Tidak ada bouncing/spring yang berlebihan.** Ini aplikasi bisnis, bukan game.
+- **Respect `prefers-reduced-motion`.** Kurangi/hilangkan animasi jika pengguna mengaktifkan setting ini.
+
+---
+
+## 8. Icon System
+
+Gunakan **Lucide Icons** (open-source, konsisten, modern). Jangan campur dengan icon set lain.
+
+- Ukuran default: `20px` untuk inline, `24px` untuk navigasi.
+- Stroke width: `1.5px` (bawaan Lucide).
+- Warna: Mengikuti warna teks parent — jangan beri warna tersendiri kecuali untuk status indicator.
+
+---
+
+## 9. Page-by-Page UX Specifications
+
+### 9.1. Login Page
+- Layout sederhana: Form di tengah, ilustrasi/brand di samping (desktop), hanya form di mobile.
+- Copy: *"Masuk ke akun Anda"* (bukan *"Login"*).
+- Sertakan link *"Lupa kata sandi?"* dan *"Belum punya akun? Daftar gratis."*
+- Jangan tampilkan password secara default (tambahkan toggle 👁️).
+
+### 9.2. Dashboard Owner
+- **Greeting kontekstual**: *"Selamat pagi, Budi."* (berdasarkan waktu lokal, bukan *"Welcome back"*).
+- **KPI Cards** (baris atas): Kamar Terisi, Pendapatan Bulan Ini, Tagihan Belum Lunas, Kontrak Segera Habis.
+- **Chart**: Line chart pendapatan 6 bulan terakhir (warna `--brand-primary`, area fill soft).
+- **Quick Actions**: *"+ Tambah Properti"*, *"+ Buat Tagihan"* — floating atau fixed di area mudah dijangkau.
+- **Recent Activity Feed**: Timeline vertikal dengan timestamp relatif (*"2 jam lalu"*, *"Kemarin"*).
+
+### 9.3. Halaman Properti
+- **Master-detail pattern**: Grid card properti (foto, nama, alamat, occupancy bar) → Klik → Detail + daftar kamar.
+- Occupancy bar: Horizontal progress bar (`--success` untuk terisi, `--border-default` untuk kosong).
+- Tombol *"+ Tambah Properti"* di posisi **kanan atas**, konsisten di seluruh halaman list.
+
+### 9.4. Halaman Keuangan
+- **Tab navigation**: Tagihan | Pembayaran | Pengeluaran.
+- Filter: Rentang tanggal + Status (dropdown) — inline, bukan di modal.
+- Summary card di atas tabel: *Total Masuk*, *Total Keluar*, *Saldo Bersih* (bulan ini).
+- Badge status pada setiap baris transaksi (lihat Section 5.5).
+
+### 9.5. Resident Portal (Mobile-first)
+- Layout vertikal penuh, **tanpa sidebar**.
+- Navigasi: Bottom tab bar (Beranda, Tagihan, Laporan, Profil).
+- Copy ramah: *"Hai, Ahmad! Ada 1 tagihan yang perlu dibayar."*
+- Upload bukti transfer: Area drag-and-drop besar dengan preview gambar.
+
+---
+
+## 10. Empty States & Loading
+
+### Empty States
+- **Jangan pernah menampilkan halaman kosong tanpa panduan.** Selalu sertakan:
+  1. Ilustrasi ringan (line art, bukan 3D render).
+  2. Copy yang menjelaskan *apa* halaman ini dan *bagaimana* memulai.
+  3. CTA tombol utama.
+- Contoh: *"Belum ada properti. Mulai dengan menambahkan kos pertama Anda."* → Tombol *"+ Tambah Properti"*.
+
+### Loading States
+- **Skeleton screens** untuk konten terstruktur (card, tabel). Jangan spinner di tengah halaman.
+- Spinner kecil hanya untuk tombol individual saat menunggu respons API.
+- Jika loading > 3 detik, tampilkan pesan: *"Masih memuat data, mohon tunggu..."*
+
+---
+
+## 11. Accessibility Checklist
+
+- [ ] Semua gambar memiliki `alt` text deskriptif.
+- [ ] Navigasi keyboard berfungsi penuh (Tab, Enter, Escape).
+- [ ] Focus indicator terlihat jelas (`outline` bukan `outline: none`).
+- [ ] Kontras warna memenuhi WCAG AA (4.5:1 teks, 3:1 UI).
+- [ ] Form error di-`aria-describedby` ke pesan error terkait.
+- [ ] `aria-label` pada tombol yang hanya berisi ikon.
