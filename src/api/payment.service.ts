@@ -1,14 +1,12 @@
 import api from './axios';
+import type { Invoice } from './invoice.service';
 
 export type PaymentMethod = 'CASH' | 'MANUAL_TRANSFER' | 'E_WALLET';
 
 export interface Payment {
   id: string;
   invoice_id: string;
-  invoice?: {
-    invoice_number: string;
-    resident?: { full_name: string; room?: { room_code: string } };
-  };
+  invoice?: Invoice;
   amount: number;
   payment_method: PaymentMethod;
   payment_date: string;

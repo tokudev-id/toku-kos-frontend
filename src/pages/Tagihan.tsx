@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  Plus, Search, FileText, CheckCircle2, Clock, AlertCircle, Eye, ChevronDown,
+  Plus, Search, FileText, CheckCircle2, Clock, AlertCircle, Eye, ChevronDown, Download, MessageCircle
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { invoiceService } from '@/api/invoice.service';
@@ -72,6 +72,25 @@ export default function Tagihan() {
     }
   };
 
+  const handleExport = async () => {
+    try {
+      const res = await invoiceService.exportInvoices(filterStatus || undefined);
+      // Backend returns { data: string, filename: string }
+      const blob = new Blob([res.data], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Tagihan_Export_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (e) {
+      console.error(e);
+      alert('Gagal mengunduh CSV.');
+    }
+  };
+
   const handleCreateInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -128,8 +147,8 @@ export default function Tagihan() {
     const q = searchQuery.toLowerCase();
     return !q ||
       inv.invoice_number?.toLowerCase().includes(q) ||
-      inv.resident?.full_name?.toLowerCase().includes(q) ||
-      inv.resident?.room?.room_code?.toLowerCase().includes(q);
+      inv.contract?.resident?.full_name?.toLowerCase().includes(q) ||
+      inv.contract?.room?.room_code?.toLowerCase().includes(q);
   });
 
   return (
@@ -139,9 +158,14 @@ export default function Tagihan() {
           <h2 className="text-2xl font-bold">Tagihan</h2>
           <p className="text-text-secondary">Kelola semua tagihan penghuni kos Anda.</p>
         </div>
-        <button className="btn-primary" onClick={() => setShowModal(true)}>
-          <Plus size={20} /> Buat Tagihan
-        </button>
+        <div className="flex gap-3">
+          <button className="btn-secondary" onClick={handleExport}>
+            <Download size={20} /> Export CSV
+          </button>
+          <button className="btn-primary" onClick={() => setShowModal(true)}>
+            <Plus size={20} /> Buat Tagihan
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -207,8 +231,8 @@ export default function Tagihan() {
                         <span className="font-medium text-sm">{inv.invoice_number}</span>
                       </div>
                     </td>
-                    <td className="px-md py-4 font-semibold text-sm">{inv.resident?.full_name ?? '-'}</td>
-                    <td className="px-md py-4 text-sm text-text-secondary">{inv.resident?.room?.room_code ?? '-'}</td>
+                    <td className="px-md py-4 font-semibold text-sm">{inv.contract?.resident?.full_name ?? '-'}</td>
+                    <td className="px-md py-4 text-sm text-text-secondary">{inv.contract?.room?.room_code ?? '-'}</td>
                     <td className="px-md py-4 text-sm text-text-secondary">{inv.period ?? '-'}</td>
                     <td className="px-md py-4 font-bold text-sm">{formatCurrency(inv.total_amount)}</td>
                     <td className="px-md py-4 text-sm text-text-secondary">{new Date(inv.due_date).toLocaleDateString('id-ID')}</td>
@@ -219,7 +243,23 @@ export default function Tagihan() {
                       </span>
                     </td>
                     <td className="px-md py-4 text-right flex items-center justify-end gap-2">
-                      <button className="text-brand-primary text-sm font-bold hover:underline" onClick={() => setSelectedInvoice(inv)}>
+                      {inv.contract?.resident?.phone_number && (
+                        <a
+                          href={`https://wa.me/${inv.contract.resident.phone_number.replace(/^0/, '62').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Halo ${inv.contract.resident.full_name}, berikut invoice tagihan ${inv.period || 'bulan ini'} sebesar ${formatCurrency(inv.total_amount)}. Mohon segera dibayar.`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-green-600 hover:text-green-800"
+                          title="Kirim Invoice via WhatsApp"
+                        >
+                          <MessageCircle size={18} />
+                        </a>
+                      )}                        <button 
+                          className="text-blue-600 hover:text-blue-800" 
+                          onClick={() => invoiceService.downloadPdf(inv.id)}
+                          title="Download PDF"
+                        >
+                          <Download size={18} />
+                        </button>                      <button className="text-brand-primary text-sm font-bold hover:underline" onClick={() => setSelectedInvoice(inv)}>
                         <Eye size={16} />
                       </button>
                       {inv.status === 'VERIFICATION_PENDING' && (
@@ -376,8 +416,8 @@ export default function Tagihan() {
               <button onClick={() => setSelectedInvoice(null)} className="text-text-secondary hover:text-text-primary">✕</button>
             </div>
             <div className="p-lg space-y-3">
-              <div className="flex justify-between text-sm"><span className="text-text-secondary">Penghuni</span><span className="font-semibold">{selectedInvoice.resident?.full_name}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-text-secondary">Kamar</span><span>{selectedInvoice.resident?.room?.room_code ?? '-'}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-text-secondary">Penghuni</span><span className="font-semibold">{selectedInvoice.contract?.resident?.full_name}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-text-secondary">Kamar</span><span>{selectedInvoice.contract?.room?.room_code ?? '-'}</span></div>
               <div className="flex justify-between text-sm"><span className="text-text-secondary">Periode</span><span>{selectedInvoice.period ?? '-'}</span></div>
               <div className="flex justify-between text-sm"><span className="text-text-secondary">Jatuh Tempo</span><span>{new Date(selectedInvoice.due_date).toLocaleDateString('id-ID')}</span></div>
               <hr className="border-border-default" />

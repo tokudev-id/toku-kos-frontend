@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
-import { Plus, Building2, MapPin, ChevronRight, Search, MoreVertical, Pencil, Trash2, X } from 'lucide-react';
+import { Plus, Building2, MapPin, ChevronRight, Search, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { propertyService } from '@/api/property.service';
 import type { Property } from '@/api/property.service';
 import { AddPropertyModal } from '@/components/AddPropertyModal';
+import { Modal } from '@/components/Modal';
 
 export default function Properties() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -207,61 +208,64 @@ export default function Properties() {
       />
 
       {/* Edit Property Modal */}
-      {editingProperty && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
-            <div className="flex items-center justify-between p-6 border-b border-border-default">
-              <h3 className="text-lg font-bold">Edit Properti</h3>
-              <button onClick={() => setEditingProperty(null)} className="p-2 hover:bg-slate-100 rounded-lg"><X size={18} /></button>
-            </div>
-            <form onSubmit={handleUpdate} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Nama Properti *</label>
-                <input required className="input-field" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Alamat *</label>
-                <input required className="input-field" value={editForm.address} onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))} />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Kota</label>
-                  <input className="input-field" value={editForm.city} onChange={e => setEditForm(f => ({ ...f, city: e.target.value }))} />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Provinsi</label>
-                  <input className="input-field" value={editForm.province} onChange={e => setEditForm(f => ({ ...f, province: e.target.value }))} />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Deskripsi</label>
-                <textarea rows={2} className="input-field" value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} />
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setEditingProperty(null)} className="btn-secondary flex-1">Batal</button>
-                <button type="submit" disabled={saving} className="btn-primary flex-1">{saving ? 'Menyimpan...' : 'Simpan'}</button>
-              </div>
-            </form>
+      <Modal
+        isOpen={!!editingProperty}
+        onClose={() => setEditingProperty(null)}
+        title="Edit Properti"
+        maxWidth="max-w-lg"
+      >
+        <form onSubmit={handleUpdate} className="p-2 space-y-4">
+          <div>
+            <label className="label-field">Nama Properti *</label>
+            <input required className="input-field" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} />
           </div>
-        </div>
-      )}
+          <div>
+            <label className="label-field">Alamat *</label>
+            <input required className="input-field" value={editForm.address} onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))} />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="label-field">Kota</label>
+              <input className="input-field" value={editForm.city} onChange={e => setEditForm(f => ({ ...f, city: e.target.value }))} />
+            </div>
+            <div>
+              <label className="label-field">Provinsi</label>
+              <input className="input-field" value={editForm.province} onChange={e => setEditForm(f => ({ ...f, province: e.target.value }))} />
+            </div>
+          </div>
+          <div>
+            <label className="label-field">Deskripsi</label>
+            <textarea rows={2} className="input-field" value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} />
+          </div>
+          <div className="flex gap-3 pt-4">
+            <button type="button" onClick={() => setEditingProperty(null)} className="btn-secondary flex-1 justify-center">Batal</button>
+            <button type="submit" disabled={saving} className="btn-primary flex-1 justify-center">{saving ? 'Menyimpan...' : 'Simpan Perubahan'}</button>
+          </div>
+        </form>
+      </Modal>
 
-      {/* Delete Confirmation */}
-      {deletingProperty && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl p-6 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-danger/10 text-danger rounded-full flex items-center justify-center"><Trash2 size={18} /></div>
-              <h3 className="text-lg font-bold">Hapus Properti?</h3>
-            </div>
-            <p className="text-text-secondary text-sm">Properti <strong>{deletingProperty.name}</strong> akan dihapus permanen beserta semua data kamarnya. Tindakan ini tidak dapat dibatalkan.</p>
-            <div className="flex gap-3">
-              <button onClick={() => setDeletingProperty(null)} className="btn-secondary flex-1">Batal</button>
-              <button onClick={handleDelete} disabled={deleting} className="flex-1 px-4 py-2 bg-danger text-white rounded-lg font-medium hover:opacity-90 disabled:opacity-50">{deleting ? 'Menghapus...' : 'Ya, Hapus'}</button>
-            </div>
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={!!deletingProperty}
+        onClose={() => setDeletingProperty(null)}
+        title="Hapus Properti?"
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-danger/10 text-danger rounded-full flex items-center justify-center"><Trash2 size={18} /></div>
+          </div>
+          <p className="text-text-secondary text-sm">
+            Properti <strong>{deletingProperty?.name}</strong> akan dihapus permanen beserta semua data kamarnya. Tindakan ini tidak dapat dibatalkan.
+          </p>
+          <div className="flex gap-3 pt-2">
+            <button onClick={() => setDeletingProperty(null)} className="btn-secondary flex-1 justify-center">Batal</button>
+            <button onClick={handleDelete} disabled={deleting} className="btn-primary bg-danger hover:bg-danger/90 border-danger flex-1 justify-center">
+              {deleting ? 'Menghapus...' : 'Ya, Hapus Properti'}
+            </button>
           </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

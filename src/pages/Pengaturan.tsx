@@ -53,7 +53,7 @@ export default function Pengaturan() {
   }
 
   return (
-    <div className="space-y-lg max-w-2xl">
+    <div className="space-y-lg mx-auto max-w-4xl">
       <div className="flex items-center gap-3">
         <div className="p-2 bg-brand-primary-soft text-brand-primary rounded-lg">
           <Settings size={24} />

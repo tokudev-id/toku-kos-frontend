@@ -1,8 +1,9 @@
-﻿import { useEffect, useState, useRef } from 'react';
-import { Plus, Users, Search, Mail, Phone, Calendar, MoreVertical, Pencil, LogOut, X } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { Plus, Users, Search, Mail, Phone, Calendar, MoreVertical, Pencil, LogOut } from 'lucide-react';
 import { residentService } from '@/api/resident.service';
 import type { Resident } from '@/api/resident.service';
 import { AddResidentModal } from '@/components/AddResidentModal';
+import { Modal } from '@/components/Modal';
 
 export default function Residents() {
   const [residents, setResidents] = useState<Resident[]>([]);
@@ -204,67 +205,70 @@ export default function Residents() {
       />
 
       {/* Edit Resident Modal */}
-      {editingResident && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
-            <div className="flex items-center justify-between p-6 border-b border-border-default">
-              <h3 className="text-lg font-bold">Edit Data Penghuni</h3>
-              <button onClick={() => setEditingResident(null)} className="p-2 hover:bg-slate-100 rounded-lg"><X size={18} /></button>
-            </div>
-            <form onSubmit={handleUpdate} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Nama Lengkap *</label>
-                <input required className="input-field" value={editForm.full_name} onChange={e => setEditForm(f => ({ ...f, full_name: e.target.value }))} />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Email *</label>
-                  <input required type="email" className="input-field" value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Telepon</label>
-                  <input className="input-field" value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">No. KTP/Identitas</label>
-                  <input className="input-field" value={editForm.identity_number} onChange={e => setEditForm(f => ({ ...f, identity_number: e.target.value }))} />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Kontak Darurat</label>
-                  <input className="input-field" value={editForm.emergency_contact} onChange={e => setEditForm(f => ({ ...f, emergency_contact: e.target.value }))} />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Catatan</label>
-                <textarea rows={2} className="input-field" value={editForm.notes} onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))} />
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setEditingResident(null)} className="btn-secondary flex-1">Batal</button>
-                <button type="submit" disabled={saving} className="btn-primary flex-1">{saving ? 'Menyimpan...' : 'Simpan'}</button>
-              </div>
-            </form>
+      <Modal
+        isOpen={!!editingResident}
+        onClose={() => setEditingResident(null)}
+        title="Edit Data Penghuni"
+        maxWidth="max-w-lg"
+      >
+        <form onSubmit={handleUpdate} className="space-y-4">
+          <div>
+            <label className="label-field">Nama Lengkap *</label>
+            <input required className="input-field" value={editForm.full_name} onChange={e => setEditForm(f => ({ ...f, full_name: e.target.value }))} />
           </div>
-        </div>
-      )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="label-field">Email *</label>
+              <input required type="email" className="input-field" value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} />
+            </div>
+            <div>
+              <label className="label-field">Telepon</label>
+              <input className="input-field" value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="label-field">No. KTP/Identitas</label>
+              <input className="input-field" value={editForm.identity_number} onChange={e => setEditForm(f => ({ ...f, identity_number: e.target.value }))} />
+            </div>
+            <div>
+              <label className="label-field">Kontak Darurat</label>
+              <input className="input-field" value={editForm.emergency_contact} onChange={e => setEditForm(f => ({ ...f, emergency_contact: e.target.value }))} />
+            </div>
+          </div>
+          <div>
+            <label className="label-field">Catatan</label>
+            <textarea rows={2} className="input-field" value={editForm.notes} onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))} />
+          </div>
+          <div className="flex gap-3 pt-4">
+            <button type="button" onClick={() => setEditingResident(null)} className="btn-secondary flex-1 justify-center">Batal</button>
+            <button type="submit" disabled={saving} className="btn-primary flex-1 justify-center">{saving ? 'Menyimpan...' : 'Simpan Perubahan'}</button>
+          </div>
+        </form>
+      </Modal>
 
-      {/* Checkout Confirmation */}
-      {checkoutResident && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl p-6 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-warning/10 text-warning rounded-full flex items-center justify-center"><LogOut size={18} /></div>
-              <h3 className="text-lg font-bold">Konfirmasi Checkout</h3>
-            </div>
-            <p className="text-text-secondary text-sm">Penghuni <strong>{checkoutResident.full_name}</strong> akan di-checkout dari kamar. Status akan berubah menjadi Checkout.</p>
-            <div className="flex gap-3">
-              <button onClick={() => setCheckoutResident(null)} className="btn-secondary flex-1">Batal</button>
-              <button onClick={handleCheckout} disabled={checkingOut} className="flex-1 px-4 py-2 bg-warning text-white rounded-lg font-medium hover:opacity-90 disabled:opacity-50">{checkingOut ? 'Memproses...' : 'Ya, Checkout'}</button>
-            </div>
+      {/* Checkout Confirmation Modal */}
+      <Modal
+        isOpen={!!checkoutResident}
+        onClose={() => setCheckoutResident(null)}
+        title="Konfirmasi Checkout"
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-warning/10 text-warning rounded-full flex items-center justify-center"><LogOut size={18} /></div>
+          </div>
+          <p className="text-text-secondary text-sm">
+            Penghuni <strong>{checkoutResident?.full_name}</strong> akan di-checkout dari kamar. Status akan berubah menjadi Checkout.
+          </p>
+          <div className="flex gap-3 pt-2">
+            <button onClick={() => setCheckoutResident(null)} className="btn-secondary flex-1 justify-center">Batal</button>
+            <button onClick={handleCheckout} disabled={checkingOut} className="btn-primary bg-warning hover:bg-warning/90 border-warning flex-1 justify-center">
+              {checkingOut ? 'Memproses...' : 'Ya, Checkout'}
+            </button>
           </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

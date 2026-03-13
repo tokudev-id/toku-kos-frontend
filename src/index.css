@@ -1,26 +1,38 @@
 @import "tailwindcss";
 
+/* Typography: Headings: Sora, Body: Plus Jakarta Sans */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Sora:wght@100..800&display=swap');
+
+
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", inherit;
 
-  --color-brand-primary: #2563EB;
-  --color-brand-primary-hover: #1D4ED8;
-  --color-brand-primary-soft: #EFF6FF;
+  /* Brand: Terracotta / Rust */
+  --color-brand-primary: oklch(65% 0.12 40);
+  --color-brand-primary-hover: oklch(60% 0.12 40);
+  --color-brand-primary-soft: oklch(92% 0.02 40);
 
-  --color-surface-bg: #F8FAFC;
+  /* Surface: Warm Cream & Neutrals */
+  --color-surface-bg: oklch(98% 0.005 80);      /* Warm off-white background */
   --color-surface-card: #FFFFFF;
-  --color-surface-sidebar: #1E293B;
+  --color-surface-sidebar: #FFFFFF;             /* Light sidebar per plan */
 
-  --color-text-primary: #0F172A;
-  --color-text-secondary: #64748B;
-  --color-text-on-dark: #F1F5F9;
+  /* Text: Tinted Neutrals */
+  --color-text-primary: oklch(25% 0.01 40);     /* Deep tinted grey */
+  --color-text-secondary: oklch(55% 0.01 40);
+  --color-text-on-dark: oklch(98% 0.005 80);
 
-  --color-border-default: #E2E8F0;
+  /* Border & Accents */
+  --color-border-default: oklch(92% 0.01 40);
+  --color-border-muted: oklch(95% 0.01 40);
 
-  --color-success: #16A34A;
-  --color-warning: #F59E0B;
-  --color-danger: #DC2626;
+  /* Feedback */
+  --color-success: oklch(75% 0.15 145);
+  --color-warning: oklch(80% 0.12 75);
+  --color-danger: oklch(65% 0.15 30);
 
+  /* Spatial & UI */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
@@ -28,19 +40,44 @@
   --spacing-xl: 32px;
   --spacing-2xl: 48px;
 
-  --radius-lg: 12px;
-  --radius-md: 8px;
+  --radius-xl: 20px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+
+  --shadow-card: 0 1px 3px 0 oklch(0% 0 0 / 0.05), 0 1px 2px -1px oklch(0% 0 0 / 0.05);
+  --shadow-elevated: 0 10px 15px -3px oklch(0% 0 0 / 0.08), 0 4px 6px -4px oklch(0% 0 0 / 0.08);
+
+  --animate-stagger: stagger 0.3s ease-out;
 }
+
+@keyframes stagger {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 
 @layer base {
   body {
-    @apply bg-surface-bg text-text-primary font-sans;
+    @apply bg-surface-bg text-text-primary font-sans antialiased;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold text-text-primary;
+    @apply font-display font-semibold text-text-primary tracking-tight;
+  }
+
+  /* Custom scrollbar for premium feel */
+  ::-webkit-scrollbar {
+    @apply w-1.5;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border-default rounded-full hover:bg-text-secondary/20 transition-colors;
   }
 }
+
 
 @layer components {
   .btn-primary {

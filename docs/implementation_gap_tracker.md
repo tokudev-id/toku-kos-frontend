@@ -67,14 +67,14 @@
 | `GET /finance/invoices/:id` | ✅ Done |
 | `GET /finance/invoices?status=` (filter) | ✅ Done |
 | `PATCH /finance/invoices/:id/verify` | ✅ Done |
-| `GET /finance/invoices/export` (CSV) | ❌ Missing |
+| `GET /finance/invoices/export` (CSV) | ✅ Done |
 
 #### Finance — Payments
 | Endpoint | Status |
 |---|---|
 | `POST /finance/payments` | ✅ Done |
 | `GET /finance/payments` | ✅ Done |
-| `POST /finance/payments/:id/proof` (upload) | ❌ Missing |
+| `POST /finance/payments/:id/proof` (upload) | ✅ Done |
 
 #### Finance — Expenses
 | Endpoint | Status |
@@ -96,7 +96,7 @@
 |---|---|
 | `GET /laporan/summary` (6-month KPIs) | ✅ Done |
 | `GET /laporan/cashflow` (monthly chart data) | ✅ Done |
-| `GET /laporan/export` (CSV download) | ❌ Missing |
+| `GET /laporan/export` (CSV download) | ✅ Done |
 
 #### Inventaris Module
 | Endpoint | Status |
@@ -119,7 +119,7 @@
 |---|---|
 | `GET /saas/plans` | ✅ Done |
 | `GET /saas/subscription` (current) | ✅ Done |
-| `POST /saas/subscription/upgrade` | ❌ Missing |
+| `POST /saas/subscription/upgrade` | ✅ Done |
 | `GET /saas/usage` | ✅ Done |
 
 ---
@@ -196,11 +196,11 @@
 |---|---|
 | Resident Portal self-service (view invoices, upload bukti) | ✅ Done |
 | DB Migrations needed | ✅ Done — FullSchemaUpdate migration ran successfully |
-| SaaS plan limits enforcement (quota per plan) | ❌ Missing |
-| H-3 payment reminder scheduler (automated WA) | ❌ Missing |
-| WhatsApp broadcast to multiple residents | ❌ Missing |
-| Late fee / denda auto-calculation on overdue invoices | ❌ Missing |
-| Invoice PDF generation | ❌ Missing |
+| SaaS plan limits enforcement (quota per plan) | ✅ Done |
+| H-3 payment reminder scheduler (automated WA) | ✅ Done |
+| WhatsApp broadcast to multiple residents | ✅ Done |
+| Late fee / denda auto-calculation on overdue invoices | ✅ Done |
+| Invoice PDF generation | ✅ Done |
 | Notification system (real unread count) | ❌ Missing |
 
 ---
@@ -258,3 +258,10 @@
 | 2026-03-13 | Properties.tsx: added edit/delete per card with dropdown menu |
 | 2026-03-13 | PropertyDetails.tsx: wired Edit Info + room edit/delete modals |
 | 2026-03-13 | Residents.tsx: added dropdown with Edit Data + Checkout per row |
+| 2026-03-13 | Backend: Added GET /finance/invoices/export (CSV generation) |
+| 2026-03-13 | Backend: Updated payment queries to include full resident/room contract details |
+| 2026-03-13 | Frontend: Updated Tagihan page with Export CSV and WhatsApp reminder integration |
+| 2026-03-13 | Frontend: Refactored Invoice/Payment interfaces to match simplified backend relations |
+| 2026-03-13 | Backend: Added POST /finance/payments/:id/proof (file upload) + database migration |
+| 2026-03-13 | Backend: Added GET /laporan/export (CSV via LaporanService) |
+| 2026-03-13 | Backend: Added POST /saas/subscription/upgrade (switch plan logic) |

@@ -11,15 +11,13 @@ import {
   BarChart2,
   Settings, 
   LogOut,
-  ChevronLeft,
-  ChevronRight,
   Wrench,
-  CreditCard as BillingIcon,
   MessageCircle,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/utils/cn';
 import { useAuthStore } from '@/store/useAuthStore';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
@@ -36,7 +34,7 @@ const navItems = [
 ];
 
 export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const navigate = useNavigate();
   const logout = useAuthStore((state) => state.logout);
 
@@ -46,76 +44,117 @@ export function Sidebar() {
   };
 
   return (
-    <aside className={cn(
-      "bg-surface-sidebar text-text-on-dark h-screen transition-all duration-300 flex flex-col sticky top-0",
-      collapsed ? "w-[72px]" : "w-64"
-    )}>
-      {/* Brand */}
-      <div className="p-md flex items-center gap-3 h-16 border-b border-slate-700 overflow-hidden">
-        <div className="w-8 h-8 bg-brand-primary rounded-lg shrink-0 flex items-center justify-center font-bold text-white">
-          T
-        </div>
-        {!collapsed && (
-          <span className="font-bold text-lg whitespace-nowrap">TokuKos</span>
+    <>
+      {/* Desktop Sidebar Rail */}
+      <aside 
+        className={cn(
+          "hidden md:flex flex-col bg-white border-r border-border-default h-screen sticky top-0 transition-all duration-300 z-30 shadow-sm relative",
+          isExpanded ? "w-64" : "w-[72px]"
         )}
-      </div>
+      >
+        {/* Toggle Button */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="absolute -right-3 top-24 w-6 h-6 bg-white border border-border-default rounded-full flex items-center justify-center text-text-secondary hover:text-brand-primary hover:border-brand-primary transition-all z-40 shadow-sm"
+        >
+          {isExpanded ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
+        </button>
 
-      {/* Nav Items */}
-      <nav className="flex-1 py-md space-y-1 px-3">
-        {navItems.map((item) => (
+        {/* Brand/Logo */}
+        <div className="h-20 flex items-center px-4 border-b border-border-muted overflow-hidden shrink-0">
+          <div className="w-10 h-10 bg-brand-primary rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-card shrink-0">
+            T
+          </div>
+          <span className={cn(
+            "ml-3 font-display font-bold text-xl text-text-primary transition-all duration-300 whitespace-nowrap",
+            isExpanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 pointer-events-none"
+          )}>
+            TokuKos
+          </span>
+        </div>
+
+        {/* Nav Items */}
+        <nav className="flex-1 py-6 px-3 space-y-2 overflow-y-auto no-scrollbar">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              title={!isExpanded ? item.label : undefined}
+              className={({ isActive }) => cn(
+                "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative",
+                isActive 
+                  ? "bg-brand-primary text-white shadow-card" 
+                  : "text-text-secondary hover:text-brand-primary hover:bg-brand-primary-soft"
+              )}
+            >
+              {({ isActive }) => (
+                <>
+                  <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} className="shrink-0" />
+                  <span className={cn(
+                    "font-semibold text-sm whitespace-nowrap transition-all duration-300",
+                    isExpanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 pointer-events-none"
+                  )}>
+                    {item.label}
+                  </span>
+                  {isActive && !isExpanded && (
+                    <div className="absolute right-[-12px] top-1/2 -translate-y-1/2 w-1.5 h-6 bg-brand-primary rounded-l-full" />
+                  )}
+                </>
+              )}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Footer */}
+        <div className="p-3 border-t border-border-muted space-y-2">
+          <NavLink
+            to="/pengaturan"
+            className={({ isActive }) => cn(
+              "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200",
+              isActive ? "bg-brand-primary text-white shadow-card" : "text-text-secondary hover:text-brand-primary hover:bg-brand-primary-soft"
+            )}
+          >
+            <Settings size={22} className="shrink-0" />
+            <span className={cn(
+              "font-semibold text-sm transition-all duration-300",
+              isExpanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 pointer-events-none"
+            )}>
+              Pengaturan
+            </span>
+          </NavLink>
+          
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3 py-3 text-danger hover:bg-danger/10 rounded-xl transition-all duration-200"
+          >
+            <LogOut size={22} className="shrink-0" />
+            <span className={cn(
+              "font-semibold text-sm transition-all duration-300",
+              isExpanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 pointer-events-none"
+            )}>
+              Logout
+            </span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Mobile Bottom Nav */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-border-default z-40 flex items-center justify-around px-2 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+        {navItems.slice(0, 5).map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
             className={({ isActive }) => cn(
-              "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-              isActive 
-                ? "bg-brand-primary text-white" 
-                : "hover:bg-slate-800 text-slate-400 hover:text-white"
+              "flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all",
+              isActive ? "text-brand-primary bg-brand-primary-soft" : "text-text-secondary"
             )}
           >
             <item.icon size={20} />
-            {!collapsed && <span className="font-medium">{item.label}</span>}
+            <span className="text-[10px] font-bold mt-1">{item.label.slice(0, 6)}</span>
           </NavLink>
         ))}
       </nav>
-
-      {/* Footer */}
-      <div className="p-3 border-t border-slate-700 space-y-1">
-        <NavLink
-          to="/pengaturan"
-          className={({ isActive }) => cn(
-            "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-            isActive ? "bg-brand-primary text-white" : "text-slate-400 hover:text-white hover:bg-slate-800"
-          )}
-        >
-          <Settings size={20} />
-          {!collapsed && <span className="font-medium">Pengaturan</span>}
-        </NavLink>
-        <NavLink
-          to="/billing"
-          className={({ isActive }) => cn(
-            "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-            isActive ? "bg-brand-primary text-white" : "text-slate-400 hover:text-white hover:bg-slate-800"
-          )}
-        >
-          <BillingIcon size={20} />
-          {!collapsed && <span className="font-medium">Billing</span>}
-        </NavLink>
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-950/30 rounded-md transition-colors"
-        >
-          <LogOut size={20} />
-          {!collapsed && <span className="font-medium">Logout</span>}
-        </button>
-        
-        <button 
-          onClick={() => setCollapsed(!collapsed)}
-          className="mt-4 w-full flex items-center justify-center p-2 text-slate-500 hover:text-white transition-colors"
-        >
-          {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-        </button>
-      </div>
-    </aside>
+    </>
   );
 }
+

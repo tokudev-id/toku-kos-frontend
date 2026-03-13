@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Home, Users, DoorOpen, Wallet, ArrowUpRight, ArrowDownRight, Plus } from 'lucide-react';
+import { Home, TrendingUp, Wallet, Plus } from 'lucide-react';
 import { dashboardService } from '@/api/dashboard.service';
 import type { DashboardSummary } from '@/api/dashboard.service';
-import { cn } from '@/utils/cn';
+import { StatCard } from '@/components/molecules/StatCard';
+import { ChartCard } from '@/components/molecules/ChartCard';
+import { SectionHeader } from '@/components/molecules/SectionHeader';
+import { TransactionItem } from '@/components/molecules/TransactionItem';
+import { MaintenanceItem } from '@/components/molecules/MaintenanceItem';
+import { DonutChart } from '@/components/molecules/DonutChart';
+import { Button } from '@/components/atoms/Button';
 
 export default function Overview() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
@@ -23,100 +29,132 @@ export default function Overview() {
     }
   };
 
-  const stats = [
-    { 
-      label: 'Kamar Terisi', 
-      value: summary ? `${summary.rooms.occupied}/${summary.rooms.total}` : '0/0', 
-      change: 'Hunian saat ini', 
-      trend: 'up', 
-      icon: DoorOpen 
-    },
-    { 
-      label: 'Total Penghuni', 
-      value: summary?.residents?.toString() || '0', 
-      change: 'Aktif terpantau', 
-      trend: 'up', 
-      icon: Users 
-    },
-    { 
-      label: 'Pendapatan', 
-      value: summary ? `Rp ${summary.finance.paidAmount.toLocaleString()}` : 'Rp 0', 
-      change: 'Bulan ini', 
-      trend: 'up', 
-      icon: Wallet 
-    },
-    { 
-      label: 'Tunggakan', 
-      value: summary ? `Rp ${(summary.finance.totalAmount - summary.finance.paidAmount).toLocaleString()}` : 'Rp 0', 
-      change: 'Perlu ditagih', 
-      trend: 'down', 
-      icon: Home 
-    },
+  const costData = [
+    { label: 'Maintenance', value: 45, color: 'oklch(75% 0.12 150)' },
+    { label: 'Repair', value: 25, color: 'oklch(85% 0.1 80)' },
+    { label: 'Taxes', value: 15, color: 'oklch(80% 0.08 200)' },
+    { label: 'Saving', value: 15, color: 'oklch(75% 0.1 260)' },
   ];
 
-  return (
-    <div className="space-y-lg">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Halo, Budi!</h2>
-          <p className="text-text-secondary">Ini ringkasan kos Kosan Asri Anda hari ini.</p>
-        </div>
-        <button className="btn-primary">
-          <Plus size={20} />
-          Buat Tagihan Baru
-        </button>
-      </div>
+  const handleCreateInvoice = () => {
+    console.log('Create invoice');
+  };
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg">
+  return (
+    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+      {/* Metrics Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
-          [1, 2, 3, 4].map(i => <div key={i} className="card h-32 animate-pulse bg-slate-50" />)
+          [1, 2, 3].map(i => <div key={i} className="h-44 bg-white rounded-2xl border border-border-default animate-pulse" />)
         ) : (
-          stats.map((stat) => (
-            <div key={stat.label} className="card">
-              <div className="flex items-start justify-between mb-2">
-                <div className="p-2 bg-brand-primary-soft text-brand-primary rounded-lg">
-                  <stat.icon size={20} />
-                </div>
-                <span className={cn(
-                  "flex items-center text-xs font-medium",
-                  stat.trend === 'up' ? "text-success" : "text-warning"
-                )}>
-                  {stat.trend === 'up' ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-                  {stat.change}
-                </span>
-              </div>
-              <p className="text-sm text-text-secondary">{stat.label}</p>
-              <p className="text-2xl font-bold mt-1">{stat.value}</p>
-            </div>
-          ))
+          <>
+            <StatCard 
+              icon={<Home size={24} />} 
+              label="Total Properties" 
+              value={summary?.rooms.total || 0}
+              trend={{ value: '20%', direction: 'up', subtitle: 'Last month total 1.050' }}
+            />
+            <StatCard 
+              icon={<TrendingUp size={24} />} 
+              label="Number of Sales" 
+              value="320"
+              trend={{ value: '12%', direction: 'up', subtitle: 'Global average' }}
+            />
+            <StatCard 
+              icon={<Wallet size={24} />} 
+              label="Total Revenue" 
+              value={summary ? `Rp ${summary.finance.paidAmount.toLocaleString()}` : 'Rp 0'}
+              trend={{ value: '8%', direction: 'up', subtitle: 'vs last month' }}
+            />
+          </>
         )}
       </div>
 
-      {/* Placeholder for Charts/Tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg">
-        <div className="lg:col-span-2 card h-80 flex flex-col justify-center items-center text-text-secondary italic">
-          <p>Grafik Arus Kas (Sistem Integrasi Sedang Disiapkan)</p>
-          <p className="text-xs mt-2 not-italic text-slate-400">Hubungkan bank untuk fitur otomatis</p>
+      {/* Main Charts area */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <ChartCard 
+            title="Revenue Performance" 
+            action={<Button variant="ghost" size="sm" className="rounded-full">Weekly View</Button>}
+          >
+            <div className="w-full h-full min-h-[300px] flex flex-col items-center justify-center bg-surface-bg/30 rounded-3xl border border-dashed border-border-default group hover:border-brand-primary/30 transition-all">
+               <TrendingUp className="text-brand-primary/20 mb-3 group-hover:scale-110 transition-transform" size={48} />
+               <p className="text-text-secondary italic text-sm font-medium">Analytics engine initializing...</p>
+               <p className="text-[10px] text-text-secondary/60 mt-1">Connect your bank account to see real-time data</p>
+            </div>
+          </ChartCard>
         </div>
-        <div className="card h-80 p-md flex flex-col">
-          <h3 className="font-bold mb-4">Aksi Cepat</h3>
-          <div className="space-y-3">
-            <button className="w-full text-left p-3 rounded-lg border border-border-default hover:border-brand-primary hover:bg-brand-primary-soft transition-all group">
-              <p className="font-bold text-sm group-hover:text-brand-primary">Daftarkan Penghuni Baru</p>
-              <p className="text-xs text-text-secondary">Input data KTP dan kontak</p>
-            </button>
-            <button className="w-full text-left p-3 rounded-lg border border-border-default hover:border-brand-primary hover:bg-brand-primary-soft transition-all group">
-              <p className="font-bold text-sm group-hover:text-brand-primary">Check-in Kamar</p>
-              <p className="text-xs text-text-secondary">Hubungkan penghuni ke nomor kamar</p>
-            </button>
-            <button className="w-full text-left p-3 rounded-lg border border-border-default hover:border-brand-primary hover:bg-brand-primary-soft transition-all group">
-              <p className="font-bold text-sm group-hover:text-brand-primary">Rekap Biaya Listrik</p>
-              <p className="text-xs text-text-secondary">Input meteran bulanan</p>
-            </button>
+        <div>
+          <ChartCard title="Cost Breakdown" action={<Button variant="ghost" size="sm" className="rounded-full">See Details</Button>}>
+            <div className="h-full min-h-[300px] py-4">
+              <DonutChart 
+                totalLabel="Total Cost" 
+                totalValue="Rp 4.7M" 
+                data={costData} 
+              />
+            </div>
+          </ChartCard>
+        </div>
+      </div>
+
+      {/* Lists row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div>
+          <SectionHeader 
+            title="Recent Transactions" 
+            subtitle="View your latest income activity"
+            action={{ label: 'See All', onClick: () => {} }} 
+          />
+          <div className="space-y-1 bg-white p-3 rounded-[32px] border border-border-default shadow-sm">
+            <TransactionItem 
+              title="123 Maple Avenue Springfield" 
+              subtitle="12 Sep 2024, 9:29" 
+              amount="Rp 30.0K" 
+            />
+            <TransactionItem 
+              title="Booking 987 Villa Street" 
+              subtitle="10 Sep 2024, 9:29" 
+              amount="Rp 12.5K" 
+            />
+             <TransactionItem 
+              title="Apartment Booking Garden St" 
+              subtitle="08 Sep 2024, 14:00" 
+              amount="Rp 20.0K" 
+            />
+            <div className="p-4 mt-2">
+               <Button onClick={handleCreateInvoice} className="w-full rounded-2xl py-4" variant="primary">
+                 <Plus size={18} />
+                 Create New Invoice
+               </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col h-full">
+           <SectionHeader 
+            title="Maintenance Requests" 
+            subtitle="Active tasks requiring attention"
+            action={{ label: 'See All', onClick: () => {} }} 
+          />
+          <div className="grid grid-cols-1 gap-4 flex-1">
+            <MaintenanceItem 
+              category="Plumbing"
+              location="721 Meadowview"
+              requestId="MR-001"
+              description="Broken Garbage"
+              assignee={{ name: 'Jacob Jones' }}
+            />
+            <MaintenanceItem 
+              category="Electrical"
+              location="710 Hillside"
+              requestId="MR-002"
+              description="Light Flickering"
+              assignee={{ name: 'Albert Flores' }}
+            />
           </div>
         </div>
       </div>
     </div>
   );
 }
+

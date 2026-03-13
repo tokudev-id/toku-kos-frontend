@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { FileText, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { FileText, CheckCircle2, Clock, AlertCircle, Download } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import api from '@/api/axios';
+import { invoiceService } from '@/api/invoice.service';
 import type { Invoice, InvoiceStatus } from '@/api/invoice.service';
 
 const STATUS_LABELS: Record<InvoiceStatus, string> = {
@@ -111,7 +112,16 @@ export default function ResidentInvoices() {
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-lg border-b border-border-default flex items-center justify-between">
-              <h3 className="font-bold text-lg">{selectedInvoice.invoice_number}</h3>
+              <div className="flex items-center gap-3">
+                <h3 className="font-bold text-lg">{selectedInvoice.invoice_number}</h3>
+                <button
+                  onClick={() => invoiceService.downloadPdf(selectedInvoice.id, true)}
+                  className="text-blue-600 hover:text-blue-800"
+                  title="Download PDF"
+                >
+                  <Download size={18} />
+                </button>
+              </div>
               <button onClick={() => setSelectedInvoice(null)} className="text-text-secondary hover:text-text-primary text-xl">✕</button>
             </div>
             <div className="p-lg space-y-3">

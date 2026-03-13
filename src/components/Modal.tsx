@@ -8,7 +8,7 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  maxWidth?: string;
+  maxWidth?: 'max-w-sm' | 'max-w-md' | 'max-w-lg' | 'max-w-xl' | 'max-w-2xl' | 'max-w-3xl' | 'max-w-4xl';
 }
 
 export function Modal({ isOpen, onClose, title, children, maxWidth = "max-w-lg" }: ModalProps) {
@@ -33,33 +33,33 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = "max-w-lg" 
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-md sm:p-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-10">
       <div 
-        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" 
+        className="absolute inset-0 bg-text-primary/10 backdrop-blur-[2px] transition-opacity animate-in fade-in duration-300" 
         onClick={onClose} 
       />
       <div 
         ref={modalRef}
         className={cn(
-          "bg-surface-card w-full min-w-[320px] rounded-2xl shadow-2xl z-10 overflow-hidden flex flex-col max-h-[90vh]",
+          "bg-white w-full min-w-[320px] rounded-3xl shadow-elevated z-10 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 fade-in duration-300",
           maxWidth
         )}
         role="dialog"
         aria-modal="true"
       >
         {/* Header */}
-        <div className="px-lg py-md border-b border-border-default flex items-center justify-between">
-          <h3 className="text-xl font-bold">{title}</h3>
+        <div className="px-8 py-5 border-b border-border-default flex items-center justify-between bg-surface-bg/30">
+          <h3 className="text-xl font-bold font-display">{title}</h3>
           <button 
             onClick={onClose}
-            className="p-2 text-text-secondary hover:text-text-primary hover:bg-surface-bg rounded-lg transition-all"
+            className="p-2 text-text-secondary hover:text-brand-primary hover:bg-brand-primary-soft rounded-xl transition-all"
           >
             <X size={20} />
           </button>
         </div>
 
         {/* Content */}
-        <div className="px-lg py-lg overflow-y-auto max-h-[80vh]">
+        <div className="px-8 py-8 overflow-y-auto max-h-[80vh]">
           {children}
         </div>
       </div>
@@ -67,3 +67,4 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = "max-w-lg" 
     document.body,
   );
 }
+

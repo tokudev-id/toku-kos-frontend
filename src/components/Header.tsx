@@ -1,43 +1,47 @@
-import { Bell, Search, User } from 'lucide-react';
+import { Bell, MessageCircle } from 'lucide-react';
+import { SearchBar } from './molecules/SearchBar';
+import { Avatar } from './atoms/Avatar';
 
-export function Header({ title }: { title: string }) {
+export function Header() {
   return (
-    <header className="bg-surface-card h-16 border-b border-border-default sticky top-0 z-10 flex items-center justify-between px-xl">
-      <h1 className="text-xl font-semibold text-text-primary">{title}</h1>
-
-      <div className="flex items-center gap-6">
-        {/* Search */}
-        <div className="relative hidden md:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
-          <input 
-            type="text" 
-            placeholder="Cari sesuatu..." 
-            className="input-field pl-10 py-1.5 min-w-[300px]"
+    <header className="h-24 flex items-center justify-between px-6 md:px-10 sticky top-0 bg-surface-bg/80 backdrop-blur-md z-20">
+      <div className="flex items-center gap-5">
+        <div className="w-14 h-14 flex-shrink-0">
+          <img 
+            src="/logo.png" 
+            alt="Logo" 
+            className="w-full h-full object-contain"
           />
         </div>
+        <div className="hidden md:block">
+          <h1 className="text-3xl font-bold font-display tracking-tight text-text-primary">Hello, Budi!</h1>
+          <p className="text-sm text-text-secondary font-medium mt-1">Explore information and activity about your property</p>
+        </div>
+      </div>
 
-        {/* Icons */}
-        <div className="flex items-center gap-4">
-          <button className="relative text-text-secondary hover:text-text-primary transition-colors">
-            <Bell size={20} />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-danger text-white text-[10px] flex items-center justify-center rounded-full border-2 border-surface-card">
-              2
-            </span>
-          </button>
-          
-          <div className="h-8 w-px bg-border-default" />
+      <div className="flex-1 max-w-xl mx-12 hidden lg:block">
+        <SearchBar />
+      </div>
 
-          <button className="flex items-center gap-3 hover:bg-surface-bg p-1 rounded-lg transition-colors">
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-text-primary">Budi Kosan</p>
-              <p className="text-xs text-text-secondary">Owner</p>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-brand-primary-soft flex items-center justify-center text-brand-primary">
-              <User size={18} />
-            </div>
-          </button>
+      <div className="flex items-center gap-3">
+        <button className="w-12 h-12 flex items-center justify-center rounded-full bg-white border border-border-default text-text-secondary hover:text-brand-primary hover:border-brand-primary transition-all relative shadow-sm hover:shadow-md">
+          <MessageCircle size={22} />
+          <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-brand-primary rounded-full border-2 border-white" />
+        </button>
+
+        <button className="w-12 h-12 flex items-center justify-center rounded-full bg-white border border-border-default text-text-secondary hover:text-brand-primary hover:border-brand-primary transition-all relative shadow-sm hover:shadow-md">
+          <Bell size={22} />
+        </button>
+
+        <div className="hidden sm:flex items-center gap-3 ml-4 pl-4 border-l border-border-muted group cursor-pointer">
+          <div className="text-right">
+            <p className="text-sm font-bold text-text-primary leading-tight group-hover:text-brand-primary transition-colors">Budi Kosan</p>
+            <p className="text-[10px] text-text-secondary uppercase tracking-widest font-bold font-sans">Owner</p>
+          </div>
+          <Avatar name="Budi Kosan" size="md" className="shadow-sm border-2 border-transparent group-hover:border-brand-primary transition-all bg-brand-primary-soft" />
         </div>
       </div>
     </header>
   );
 }
+

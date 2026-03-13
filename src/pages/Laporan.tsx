@@ -7,6 +7,7 @@ import { reportService } from '@/api/report.service';
 import type { ReportSummary, CashflowDataPoint } from '@/api/report.service';
 
 function formatCurrency(amount: number) {
+  if (amount === undefined || amount === null) return 'Rp 0';
   if (amount >= 1_000_000) return `Rp ${(amount / 1_000_000).toFixed(1)}jt`;
   return `Rp ${amount.toLocaleString('id-ID')}`;
 }

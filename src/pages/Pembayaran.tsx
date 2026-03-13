@@ -5,6 +5,7 @@ import { paymentService } from '@/api/payment.service';
 import type { Payment, CreatePaymentDto, PaymentMethod } from '@/api/payment.service';
 import { invoiceService } from '@/api/invoice.service';
 import type { Invoice } from '@/api/invoice.service';
+import { Modal } from '@/components/Modal';
 
 const METHOD_LABELS: Record<PaymentMethod, string> = {
   CASH: 'Tunai',
@@ -101,7 +102,7 @@ export default function Pembayaran() {
     const q = searchQuery.toLowerCase();
     return !q ||
       p.invoice?.invoice_number?.toLowerCase().includes(q) ||
-      p.invoice?.resident?.full_name?.toLowerCase().includes(q);
+      p.invoice?.contract?.resident?.full_name?.toLowerCase().includes(q);
   });
 
   return (
@@ -176,8 +177,8 @@ export default function Pembayaran() {
                 filtered.map((p) => (
                   <tr key={p.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-md py-4 text-sm font-medium">{p.invoice?.invoice_number ?? '-'}</td>
-                    <td className="px-md py-4 text-sm font-semibold">{p.invoice?.resident?.full_name ?? '-'}</td>
-                    <td className="px-md py-4 text-sm text-text-secondary">{p.invoice?.resident?.room?.room_code ?? '-'}</td>
+                    <td className="px-md py-4 text-sm font-semibold">{p.invoice?.contract?.resident?.full_name ?? '-'}</td>
+                    <td className="px-md py-4 text-sm text-text-secondary">{p.invoice?.contract?.room?.room_code ?? '-'}</td>
                     <td className="px-md py-4 text-sm font-bold">{formatCurrency(p.amount)}</td>
                     <td className="px-md py-4">
                       <span className={cn('px-2.5 py-1 rounded-full text-[10px] font-bold uppercase', METHOD_CLASSES[p.payment_method])}>
@@ -195,86 +196,83 @@ export default function Pembayaran() {
       </div>
 
       {/* Record Payment Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md m-4">
-            <div className="p-lg border-b border-border-default flex items-center justify-between">
-              <h3 className="font-bold text-lg">Catat Pembayaran</h3>
-              <button onClick={() => { setShowModal(false); resetForm(); }} className="text-text-secondary hover:text-text-primary">✕</button>
-            </div>
-            <form onSubmit={handleSubmit} className="p-lg space-y-md">
-              <div>
-                <label className="label-field">Tagihan</label>
-                <select
-                  className="input-field"
-                  required
-                  value={form.invoice_id}
-                  onChange={(e) => {
-                    const inv = invoices.find((i) => i.id === e.target.value);
-                    setForm((f) => ({ ...f, invoice_id: e.target.value, amount: inv?.total_amount ?? 0 }));
-                  }}
-                >
-                  <option value="">Pilih tagihan yang belum dibayar...</option>
-                  {invoices.map((inv) => (
-                    <option key={inv.id} value={inv.id}>
-                      {inv.invoice_number} — {inv.resident?.full_name} ({formatCurrency(inv.total_amount)})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="label-field">Jumlah Dibayar (Rp)</label>
-                <input
-                  type="number"
-                  className="input-field"
-                  required
-                  min={1}
-                  value={form.amount}
-                  onChange={(e) => setForm((f) => ({ ...f, amount: Number(e.target.value) }))}
-                />
-              </div>
-              <div>
-                <label className="label-field">Metode Pembayaran</label>
-                <select
-                  className="input-field"
-                  value={form.payment_method}
-                  onChange={(e) => setForm((f) => ({ ...f, payment_method: e.target.value as PaymentMethod }))}
-                >
-                  {(Object.keys(METHOD_LABELS) as PaymentMethod[]).map((m) => (
-                    <option key={m} value={m}>{METHOD_LABELS[m]}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="label-field">Tanggal Bayar</label>
-                <input
-                  type="date"
-                  className="input-field"
-                  required
-                  value={form.payment_date}
-                  onChange={(e) => setForm((f) => ({ ...f, payment_date: e.target.value }))}
-                />
-              </div>
-              <div>
-                <label className="label-field">Catatan (opsional)</label>
-                <input
-                  type="text"
-                  className="input-field"
-                  placeholder="cth. Bukti transfer sudah diterima"
-                  value={form.notes ?? ''}
-                  onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                />
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" className="btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>Batal</button>
-                <button type="submit" className="btn-primary" disabled={submitting}>
-                  {submitting ? 'Menyimpan...' : 'Catat'}
-                </button>
-              </div>
-            </form>
+      <Modal 
+        isOpen={showModal} 
+        onClose={() => { setShowModal(false); resetForm(); }} 
+        title="Catat Pembayaran"
+        maxWidth="max-w-lg"
+      >
+        <form onSubmit={handleSubmit} className="space-y-md">
+          <div>
+            <label className="label-field">Tagihan</label>
+            <select
+              className="input-field"
+              required
+              value={form.invoice_id}
+              onChange={(e) => {
+                const inv = invoices.find((i) => i.id === e.target.value);
+                setForm((f) => ({ ...f, invoice_id: e.target.value, amount: inv?.total_amount ?? 0 }));
+              }}
+            >
+              <option value="">Pilih tagihan yang belum dibayar...</option>
+              {invoices.map((inv) => (
+                <option key={inv.id} value={inv.id}>
+                  {inv.invoice_number} — {inv.contract?.resident?.full_name} ({formatCurrency(inv.total_amount)})
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
-      )}
+          <div>
+            <label className="label-field">Jumlah Dibayar (Rp)</label>
+            <input
+              type="number"
+              className="input-field"
+              required
+              min={1}
+              value={form.amount}
+              onChange={(e) => setForm((f) => ({ ...f, amount: Number(e.target.value) }))}
+            />
+          </div>
+          <div>
+            <label className="label-field">Metode Pembayaran</label>
+            <select
+              className="input-field"
+              value={form.payment_method}
+              onChange={(e) => setForm((f) => ({ ...f, payment_method: e.target.value as PaymentMethod }))}
+            >
+              {(Object.keys(METHOD_LABELS) as PaymentMethod[]).map((m) => (
+                <option key={m} value={m}>{METHOD_LABELS[m]}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="label-field">Tanggal Bayar</label>
+            <input
+              type="date"
+              className="input-field"
+              required
+              value={form.payment_date}
+              onChange={(e) => setForm((f) => ({ ...f, payment_date: e.target.value }))}
+            />
+          </div>
+          <div>
+            <label className="label-field">Catatan (opsional)</label>
+            <input
+              type="text"
+              className="input-field"
+              placeholder="cth. Bukti transfer sudah diterima"
+              value={form.notes ?? ''}
+              onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-4">
+            <button type="button" className="btn-secondary flex-1" onClick={() => { setShowModal(false); resetForm(); }}>Batal</button>
+            <button type="submit" className="btn-primary flex-1" disabled={submitting}>
+              {submitting ? 'Menyimpan...' : 'Catat Pembayaran'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
