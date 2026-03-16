@@ -8,24 +8,28 @@
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Sora", inherit;
 
-  /* Brand: Terracotta / Rust */
-  --color-brand-primary: oklch(65% 0.12 40);
-  --color-brand-primary-hover: oklch(60% 0.12 40);
-  --color-brand-primary-soft: oklch(92% 0.02 40);
+  /* Brand: Bold Professional Blue (Distinctive, Tech-Forward) */
+  --color-brand-primary: oklch(62% 0.15 250);
+  --color-brand-primary-hover: oklch(55% 0.15 250);
+  --color-brand-primary-soft: oklch(90% 0.04 250);
 
-  /* Surface: Warm Cream & Neutrals */
-  --color-surface-bg: oklch(98% 0.005 80);      /* Warm off-white background */
+  /* Accent: Warm Coral (Tech-Forward Contrast) */
+  --color-accent-warm: oklch(65% 0.14 35);
+  --color-accent-warm-light: oklch(92% 0.03 35);
+
+  /* Surface: Clean, Enhanced Contrast */
+  --color-surface-bg: #FAFBFC;
   --color-surface-card: #FFFFFF;
-  --color-surface-sidebar: #FFFFFF;             /* Light sidebar per plan */
+  --color-surface-sidebar: #FFFFFF;
 
-  /* Text: Tinted Neutrals */
-  --color-text-primary: oklch(25% 0.01 40);     /* Deep tinted grey */
-  --color-text-secondary: oklch(55% 0.01 40);
-  --color-text-on-dark: oklch(98% 0.005 80);
+  /* Text: Enhanced Contrast */
+  --color-text-primary: #0A1428;
+  --color-text-secondary: #5A6B7D;
+  --color-text-on-dark: #F1F5F9;
 
   /* Border & Accents */
-  --color-border-default: oklch(92% 0.01 40);
-  --color-border-muted: oklch(95% 0.01 40);
+  --color-border-default: #DDE3ED;
+  --color-border-muted: #EEF1F7;
 
   /* Feedback */
   --color-success: oklch(75% 0.15 145);
@@ -62,7 +66,19 @@
     @apply bg-surface-bg text-text-primary font-sans antialiased;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1 {
+    @apply font-display font-bold text-text-primary tracking-tight text-4xl md:text-5xl;
+  }
+
+  h2 {
+    @apply font-display font-bold text-text-primary tracking-tight text-3xl md:text-4xl;
+  }
+
+  h3 {
+    @apply font-display font-semibold text-text-primary tracking-tight text-2xl md:text-3xl;
+  }
+
+  h4, h5, h6 {
     @apply font-display font-semibold text-text-primary tracking-tight;
   }
 
@@ -74,33 +90,66 @@
     @apply bg-transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-border-default rounded-full hover:bg-text-secondary/20 transition-colors;
+    @apply bg-brand-primary/30 rounded-full hover:bg-brand-primary/50 transition-colors;
   }
 }
 
 
 @layer components {
   .btn-primary {
-    @apply bg-brand-primary hover:bg-brand-primary-hover text-white px-5 py-2.5 rounded-md transition-all duration-150 inline-flex items-center gap-2 font-medium;
+    @apply bg-brand-primary hover:bg-brand-primary-hover text-white px-5 py-2.5 rounded-md transition-all duration-200 inline-flex items-center gap-2 font-semibold shadow-lg hover:shadow-xl hover:scale-105 active:scale-95;
   }
 
   .btn-secondary {
-    @apply border border-brand-primary text-brand-primary hover:bg-brand-primary-soft px-5 py-2.5 rounded-md transition-all duration-150 inline-flex items-center gap-2 font-medium;
+    @apply border-2 border-brand-primary text-brand-primary hover:bg-brand-primary-soft px-5 py-2.5 rounded-md transition-all duration-150 inline-flex items-center gap-2 font-medium hover:border-brand-primary-hover;
+  }
+
+  .btn-accent {
+    @apply bg-accent-warm hover:opacity-90 text-white px-5 py-2.5 rounded-md transition-all duration-200 inline-flex items-center gap-2 font-semibold shadow-lg;
   }
 
   .card {
-    @apply bg-surface-card border border-border-default rounded-lg p-md shadow-sm hover:shadow-md transition-all duration-150;
+    @apply bg-surface-card border border-border-default rounded-lg p-md shadow-sm hover:shadow-lg hover:border-brand-primary/50 transition-all duration-200;
+  }
+
+  .card-accent {
+    @apply bg-surface-card border-2 border-brand-primary/20 rounded-lg p-md shadow-md hover:shadow-xl hover:border-brand-primary transition-all duration-200 bg-gradient-to-br from-white to-surface-bg;
   }
 
   .input-label {
-    @apply block text-sm font-medium text-text-primary mb-1;
+    @apply block text-sm font-semibold text-text-primary mb-1.5;
   }
 
   .label-field {
-    @apply block text-sm font-medium text-text-primary mb-1;
+    @apply block text-sm font-semibold text-text-primary mb-1.5;
   }
 
   .input-field {
-    @apply w-full border border-border-default rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-primary-soft focus:border-brand-primary transition-all;
+    @apply w-full border-2 border-border-default rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-all font-medium;
   }
 }
+
+/* Fix container width/max-width conflicts with custom spacing scale names */
+@utility max-w-xs { max-width: 20rem; }
+@utility max-w-sm { max-width: 24rem; }
+@utility max-w-md { max-width: 28rem; }
+@utility max-w-lg { max-width: 32rem; }
+@utility max-w-xl { max-width: 36rem; }
+@utility max-w-2xl { max-width: 42rem; }
+@utility max-w-3xl { max-width: 48rem; }
+@utility max-w-4xl { max-width: 56rem; }
+@utility max-w-5xl { max-width: 64rem; }
+@utility max-w-6xl { max-width: 72rem; }
+@utility max-w-7xl { max-width: 80rem; }
+
+@utility w-xs { width: 20rem; }
+@utility w-sm { width: 24rem; }
+@utility w-md { width: 28rem; }
+@utility w-lg { width: 32rem; }
+@utility w-xl { width: 36rem; }
+@utility w-2xl { width: 42rem; }
+@utility w-3xl { width: 48rem; }
+@utility w-4xl { width: 56rem; }
+@utility w-5xl { width: 64rem; }
+@utility w-6xl { width: 72rem; }
+@utility w-7xl { width: 80rem; }

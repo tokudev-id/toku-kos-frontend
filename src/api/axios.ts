@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { useAuthStore } from '../store/useAuthStore';
+import { showNotification, SESSION_EXPIRED_MESSAGE } from '../utils/notification';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/v1',
@@ -25,11 +27,29 @@ api.interceptors.response.use(
   (error) => {
     const message = error.response?.data?.message || 'Terjadi kesalahan sistem';
     
-    // Auto-logout on 401 Unauthorized
+    // Auto-logout on 401 Unauthorized (session expired or invalid token)
     if (error.response?.status === 401) {
-      localStorage.removeItem('toku_token');
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+      // Check if user is attempting to access login/register pages
+      const isOnAuthPage = 
+        window.location.pathname === '/login' || 
+        window.location.pathname === '/register' ||
+        window.location.pathname === '/resident/login';
+
+      if (!isOnAuthPage) {
+        // Get user role before clearing auth
+        const currentUser = useAuthStore.getState().user;
+        const role = currentUser?.role;
+        
+        // Clear token and auth store
+        localStorage.removeItem('toku_token');
+        useAuthStore.getState().logout();
+        
+        // Show notification to user
+        showNotification(SESSION_EXPIRED_MESSAGE, 'warning');
+        
+        // Redirect to appropriate login page
+        const loginPath = role === 'RESIDENT' ? '/resident/login' : '/login';
+        window.location.href = loginPath;
       }
     }
     

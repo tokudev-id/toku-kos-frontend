@@ -28,7 +28,9 @@ export const useAuthStore = create<AuthState>()(
         set({ user, token, isAuthenticated: true });
       },
       logout: () => {
+        // Clear both token and persisted store
         localStorage.removeItem('toku_token');
+        localStorage.removeItem('toku-auth-storage');
         set({ user: null, token: null, isAuthenticated: false });
       },
     }),
@@ -37,3 +39,4 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+

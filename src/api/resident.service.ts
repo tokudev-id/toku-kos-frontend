@@ -6,6 +6,7 @@ export interface Resident {
   email: string;
   phone?: string;
   identity_number?: string;
+  identity_card_url?: string;
   emergency_contact?: string;
   check_in_date?: string;
   notes?: string;
@@ -45,6 +46,15 @@ export const residentService = {
 
   checkoutResident: async (id: string) => {
     const response = await api.post<Resident>(`/residents/${id}/checkout`);
+    return response.data;
+  },
+
+  uploadKtp: async (id: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post<Resident>(`/residents/${id}/upload-ktp`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data;
   },
 };

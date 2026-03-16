@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { Plus, Users, Search, Mail, Phone, Calendar, MoreVertical, Pencil, LogOut } from 'lucide-react';
+import { Plus, Users, Search, Mail, Phone, Calendar, MoreVertical, Pencil, LogOut, Eye, Upload } from 'lucide-react';
 import { residentService } from '@/api/resident.service';
 import type { Resident } from '@/api/resident.service';
 import { AddResidentModal } from '@/components/AddResidentModal';
@@ -23,6 +23,12 @@ export default function Residents() {
   // Checkout state
   const [checkoutResident, setCheckoutResident] = useState<Resident | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
+
+  // KTP states
+  const [ktpResident, setKtpResident] = useState<Resident | null>(null);
+  const [ktpViewMode, setKtpViewMode] = useState<'view' | 'upload'>('view');
+  const [ktpFile, setKtpFile] = useState<File | null>(null);
+  const [ktpUploading, setKtpUploading] = useState(false);
 
   useEffect(() => {
     fetchResidents();
@@ -76,6 +82,32 @@ export default function Residents() {
       fetchResidents();
     } catch (err) { console.error(err); }
     finally { setCheckingOut(false); }
+  };
+
+  const handleKtpUpload = async () => {
+    if (!ktpResident || !ktpFile) return;
+    setKtpUploading(true);
+    try {
+      await residentService.uploadKtp(ktpResident.id, ktpFile);
+      setKtpResident(null);
+      setKtpFile(null);
+      setKtpViewMode('view');
+      fetchResidents();
+    } catch (err) { console.error(err); }
+    finally { setKtpUploading(false); }
+  };
+
+  const openKtpUpload = (resident: Resident) => {
+    setKtpResident(resident);
+    setKtpViewMode('upload');
+    setKtpFile(null);
+    setOpenMenuId(null);
+  };
+
+  const openKtpView = (resident: Resident) => {
+    setKtpResident(resident);
+    setKtpViewMode('view');
+    setOpenMenuId(null);
   };
 
   const filteredResidents = residents.filter(r => 
@@ -173,6 +205,15 @@ export default function Residents() {
                           <button onClick={() => openEdit(resident)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-left">
                             <Pencil size={14} /> Edit Data
                           </button>
+                          {resident.identity_card_url ? (
+                            <button onClick={() => openKtpView(resident)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-left">
+                              <Eye size={14} /> Lihat KTP
+                            </button>
+                          ) : (
+                            <button onClick={() => openKtpUpload(resident)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-left">
+                              <Upload size={14} /> Upload KTP
+                            </button>
+                          )}
                           {resident.status !== 'CHECKOUT' && (
                             <button onClick={() => { setCheckoutResident(resident); setOpenMenuId(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-warning text-left">
                               <LogOut size={14} /> Checkout
@@ -268,6 +309,83 @@ export default function Residents() {
             </button>
           </div>
         </div>
+      </Modal>
+
+      {/* KTP Modal */}
+      <Modal
+        isOpen={!!ktpResident}
+        onClose={() => { setKtpResident(null); setKtpFile(null); }}
+        title={ktpViewMode === 'view' ? 'Lihat KTP' : 'Upload KTP'}
+        maxWidth="max-w-md"
+      >
+        {ktpViewMode === 'view' && ktpResident?.identity_card_url ? (
+          <div className="space-y-4">
+            <div className="rounded-lg primary-border overflow-hidden bg-slate-50">
+              <img 
+                src={ktpResident.identity_card_url!.startsWith('http') ? ktpResident.identity_card_url! : `http://localhost:3000${ktpResident.identity_card_url!}`} 
+                alt="KTP" 
+                className="w-full h-auto"
+              />
+            </div>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => { setKtpResident(null); setKtpFile(null); }} 
+                className="btn-secondary flex-1 justify-center"
+              >
+                Tutup
+              </button>
+              <button 
+                onClick={() => {
+                  if (!ktpResident?.identity_card_url) return;
+                  const link = document.createElement('a');
+                  link.href = ktpResident.identity_card_url.startsWith('http') ? ktpResident.identity_card_url : `http://localhost:3000${ktpResident.identity_card_url}`;
+                  link.download = `KTP-${ktpResident.full_name}`;
+                  link.click();
+                }} 
+                className="btn-primary flex-1 justify-center"
+              >
+                Unduh
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="border-2 border-dashed border-brand-primary-soft rounded-lg p-8 text-center hover:bg-brand-primary-soft/30 transition-colors cursor-pointer">
+              <input 
+                type="file" 
+                id="ktp-input" 
+                hidden 
+                accept="image/*"
+                onChange={(e) => setKtpFile(e.target.files?.[0] || null)}
+              />
+              <label htmlFor="ktp-input" className="cursor-pointer block">
+                <Upload size={32} className="mx-auto mb-2 text-brand-primary" />
+                <p className="font-semibold text-text-primary mb-1">Pilih File KTP</p>
+                <p className="text-xs text-text-secondary">Klik untuk upload foto KTP (Maks 5MB, JPG/PNG)</p>
+              </label>
+            </div>
+            {ktpFile && (
+              <div className="bg-success/10 border border-success rounded-lg p-3">
+                <p className="text-sm text-success font-semibold">✓ File dipilih: {ktpFile.name}</p>
+              </div>
+            )}
+            <div className="flex gap-3 pt-2">
+              <button 
+                onClick={() => { setKtpResident(null); setKtpFile(null); }} 
+                className="btn-secondary flex-1 justify-center"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={handleKtpUpload} 
+                disabled={!ktpFile || ktpUploading} 
+                className="btn-primary flex-1 justify-center"
+              >
+                {ktpUploading ? 'Mengunggah...' : 'Upload KTP'}
+              </button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

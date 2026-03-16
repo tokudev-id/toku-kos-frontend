@@ -168,7 +168,7 @@
 | Properti | `/properties` | ✅ Done |
 | Property Detail / Kamar | `/properties/:id` | ✅ Done |
 | Kamar (standalone list) | `/kamar` | ✅ Done |
-| Penghuni / Penyewa | `/residents` | ⚠️ Missing KTP upload |
+| Penghuni / Penyewa | `/residents` | ✅ Done |
 | Tagihan | `/tagihan` | ✅ Done |
 | Pembayaran | `/pembayaran` | ✅ Done |
 | Pengeluaran | `/pengeluaran` | ✅ Done |
@@ -265,3 +265,16 @@
 | 2026-03-13 | Backend: Added POST /finance/payments/:id/proof (file upload) + database migration |
 | 2026-03-13 | Backend: Added GET /laporan/export (CSV via LaporanService) |
 | 2026-03-13 | Backend: Added POST /saas/subscription/upgrade (switch plan logic) |
+| 2026-03-16 | Backend: Added POST /residents/:id/upload-ktp endpoint with FileInterceptor |
+| 2026-03-16 | Backend: Added uploadKtp method to ResidentsService |
+| 2026-03-16 | Frontend: Added uploadKtp method to resident.service.ts |
+| 2026-03-16 | Frontend: Added KTP upload/view modal to Residents.tsx with file picker UI |
+| 2026-03-16 | Frontend: Added "Lihat KTP" / "Upload KTP" buttons to resident dropdown menu |
+| 2026-03-16 | Backend: Created reusable FileUploadService with Cloudinary integration |
+| 2026-03-16 | Backend: Created FileUploadModule for dependency injection |
+| 2026-03-16 | Backend: Created cloudinary.config.ts for Cloudinary initialization |
+| 2026-03-16 | Backend: Updated residents.module.ts to import FileUploadModule |
+| 2026-03-16 | Backend: Migrated KTP upload to use Cloudinary CDN instead of local storage |
+| 2026-03-16 | Backend: Added CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET to .env |
+| 2026-03-16 | Backend: Added cloudinary and streamifier npm packages |
+| 2026-03-16 | Frontend: Updated KTP view to support both Cloudinary URLs and local paths |

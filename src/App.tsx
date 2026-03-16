@@ -26,18 +26,22 @@ import { useAuthStore } from './store/useAuthStore';
 
 function App() {
   const user = useAuthStore((state) => state.user);
-  const isAuthenticated = !!user;
+  const token = localStorage.getItem('toku_token');
+  
+  // User is only authenticated if BOTH user exists AND token exists
+  // This prevents redirect loops when session expires
+  const isAuthenticated = !!user && !!token;
 
   return (
     <BrowserRouter>
       <Routes>
         {/* Auth Routes */}
-        <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" />} />
-        <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
-        <Route path="/resident/login" element={!isAuthenticated ? <ResidentLogin /> : <Navigate to="/resident" />} />
+        <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" replace />} />
+        <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" replace />} />
+        <Route path="/resident/login" element={!isAuthenticated ? <ResidentLogin /> : <Navigate to="/resident" replace />} />
 
         {/* Protected Owner Dashboard Routes */}
-        <Route element={(isAuthenticated && user?.role === 'OWNER') ? <DashboardLayout /> : <Navigate to="/login" />}>
+        <Route element={(isAuthenticated && user?.role === 'OWNER') ? <DashboardLayout /> : <Navigate to="/login" replace />}>
           <Route path="/" element={<Overview />} />
           <Route path="/properties" element={<Properties />} />
           <Route path="/properties/:id" element={<PropertyDetails />} />
@@ -56,7 +60,7 @@ function App() {
         </Route>
 
         {/* Protected Resident Portal Routes */}
-        <Route element={(isAuthenticated && user?.role === 'RESIDENT') ? <ResidentLayout /> : <Navigate to="/resident/login" />}>
+        <Route element={(isAuthenticated && user?.role === 'RESIDENT') ? <ResidentLayout /> : <Navigate to="/resident/login" replace />}>
           <Route path="/resident" element={<ResidentDashboard />} />
           <Route path="/resident/maintenance" element={<ResidentMaintenance />} />
           <Route path="/resident/invoices" element={<ResidentInvoices />} />
