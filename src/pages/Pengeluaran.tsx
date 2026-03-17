@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Search, ChevronDown } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { Modal } from '@/components/molecules';
 import { expenseService } from '@/api/expense.service';
 import type { Expense, CreateExpenseDto, ExpenseCategory } from '@/api/expense.service';
 import { propertyService } from '@/api/property.service';
@@ -26,6 +27,7 @@ export default function Pengeluaran() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<ExpenseCategory | ''>('');
@@ -79,10 +81,11 @@ export default function Pengeluaran() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Hapus pengeluaran ini?')) return;
+  const handleDelete = async () => {
+    if (!deletingExpense) return;
     try {
-      await expenseService.deleteExpense(id);
+      await expenseService.deleteExpense(deletingExpense.id);
+      setDeletingExpense(null);
       fetchExpenses();
     } catch (e) {
       console.error(e);
@@ -211,7 +214,7 @@ export default function Pengeluaran() {
                     <td className="px-md py-4 font-bold text-sm">{formatCurrency(exp.amount)}</td>
                     <td className="px-md py-4 text-sm text-text-secondary">{new Date(exp.expense_date).toLocaleDateString('id-ID')}</td>
                     <td className="px-md py-4 text-right">
-                      <button onClick={() => handleDelete(exp.id)} className="text-danger hover:text-red-700">
+                      <button onClick={() => setDeletingExpense(exp)} className="text-danger hover:text-red-700">
                         <Trash2 size={16} />
                       </button>
                     </td>
@@ -224,90 +227,109 @@ export default function Pengeluaran() {
       </div>
 
       {/* Add Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md m-4">
-            <div className="p-lg border-b border-border-default flex items-center justify-between">
-              <h3 className="font-bold text-lg">Tambah Pengeluaran</h3>
-              <button onClick={() => { setShowModal(false); resetForm(); }} className="text-text-secondary">✕</button>
-            </div>
-            <form onSubmit={handleSubmit} className="p-lg space-y-md">
-              <div>
-                <label className="label-field">Judul</label>
-                <input
-                  type="text"
-                  className="input-field"
-                  required
-                  placeholder="cth. Tagihan Listrik April"
-                  value={form.title}
-                  onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-md">
-                <div>
-                  <label className="label-field">Kategori</label>
-                  <select
-                    className="input-field"
-                    value={form.category}
-                    onChange={(e) => setForm((f) => ({ ...f, category: e.target.value as ExpenseCategory }))}
-                  >
-                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="label-field">Properti (opsional)</label>
-                  <select
-                    className="input-field"
-                    value={form.property_id ?? ''}
-                    onChange={(e) => setForm((f) => ({ ...f, property_id: e.target.value }))}
-                  >
-                    <option value="">Semua / Umum</option>
-                    {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-md">
-                <div>
-                  <label className="label-field">Jumlah (Rp)</label>
-                  <input
-                    type="number"
-                    className="input-field"
-                    required
-                    min={1}
-                    value={form.amount}
-                    onChange={(e) => setForm((f) => ({ ...f, amount: Number(e.target.value) }))}
-                  />
-                </div>
-                <div>
-                  <label className="label-field">Tanggal</label>
-                  <input
-                    type="date"
-                    className="input-field"
-                    required
-                    value={form.expense_date}
-                    onChange={(e) => setForm((f) => ({ ...f, expense_date: e.target.value }))}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="label-field">Deskripsi (opsional)</label>
-                <textarea
-                  className="input-field h-20 resize-none"
-                  placeholder="Keterangan tambahan"
-                  value={form.description ?? ''}
-                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                />
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" className="btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>Batal</button>
-                <button type="submit" className="btn-primary" disabled={submitting}>
-                  {submitting ? 'Menyimpan...' : 'Simpan'}
-                </button>
-              </div>
-            </form>
+      <Modal
+        isOpen={showModal}
+        onClose={() => {
+          setShowModal(false);
+          resetForm();
+        }}
+        title="Tambah Pengeluaran"
+        maxWidth="max-w-3xl"
+      >
+        <form onSubmit={handleSubmit} className="space-y-md">
+          <div>
+            <label className="label-field">Judul</label>
+            <input
+              type="text"
+              className="input-field"
+              required
+              placeholder="cth. Tagihan Listrik April"
+              value={form.title}
+              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+            />
           </div>
-        </div>
-      )}
+          <div className="grid grid-cols-2 gap-md">
+            <div>
+              <label className="label-field">Kategori</label>
+              <select
+                className="input-field"
+                value={form.category}
+                onChange={(e) => setForm((f) => ({ ...f, category: e.target.value as ExpenseCategory }))}
+              >
+                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="label-field">Properti (opsional)</label>
+              <select
+                className="input-field"
+                value={form.property_id ?? ''}
+                onChange={(e) => setForm((f) => ({ ...f, property_id: e.target.value }))}
+              >
+                <option value="">Semua / Umum</option>
+                {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-md">
+            <div>
+              <label className="label-field">Jumlah (Rp)</label>
+              <input
+                type="number"
+                className="input-field"
+                required
+                min={1}
+                value={form.amount}
+                onChange={(e) => setForm((f) => ({ ...f, amount: Number(e.target.value) }))}
+              />
+            </div>
+            <div>
+              <label className="label-field">Tanggal</label>
+              <input
+                type="date"
+                className="input-field"
+                required
+                value={form.expense_date}
+                onChange={(e) => setForm((f) => ({ ...f, expense_date: e.target.value }))}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="label-field">Deskripsi (opsional)</label>
+            <textarea
+              className="input-field h-20 resize-none"
+              placeholder="Keterangan tambahan"
+              value={form.description ?? ''}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" className="btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>Batal</button>
+            <button type="submit" className="btn-primary" disabled={submitting}>
+              {submitting ? 'Menyimpan...' : 'Simpan'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        isOpen={!!deletingExpense}
+        onClose={() => setDeletingExpense(null)}
+        title="Hapus Pengeluaran"
+        maxWidth="max-w-md"
+      >
+        {deletingExpense && (
+          <div className="space-y-5">
+            <p className="text-sm text-text-secondary">
+              Anda yakin ingin menghapus pengeluaran <span className="font-semibold text-text-primary">{deletingExpense.title}</span>?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button type="button" className="btn-secondary" onClick={() => setDeletingExpense(null)}>Batal</button>
+              <button type="button" className="btn-danger" onClick={handleDelete}>Hapus</button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

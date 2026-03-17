@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Pencil, Trash2, Package } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { Modal } from '@/components/molecules';
 import { inventoryService } from '@/api/inventory.service';
 import type { InventoryTemplate, CreateInventoryTemplateDto, ItemCondition } from '@/api/inventory.service';
 
@@ -18,6 +19,7 @@ export default function Inventaris() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingTemplate, setDeletingTemplate] = useState<InventoryTemplate | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState<CreateInventoryTemplateDto>({
     name: '',
@@ -68,10 +70,11 @@ export default function Inventaris() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Hapus item inventaris ini?')) return;
+  const handleDelete = async () => {
+    if (!deletingTemplate) return;
     try {
-      await inventoryService.deleteTemplate(id);
+      await inventoryService.deleteTemplate(deletingTemplate.id);
+      setDeletingTemplate(null);
       fetchTemplates();
     } catch (e) {
       console.error(e);
@@ -101,7 +104,7 @@ export default function Inventaris() {
           const count = templates.filter((t) => t.condition === cond).length;
           return (
             <div key={cond} className={cn('card p-md', CONDITION_CLASSES[cond].replace('text-', 'border-l-4 border-l-').split(' ')[0])}>
-              <p className="text-xs text-text-secondary uppercase font-bold tracking-wider capitalize">{cond}</p>
+              <p className="text-xs text-text-secondary uppercase font-bold tracking-wider">{cond}</p>
               <p className="text-xl font-bold mt-1">{count}</p>
             </div>
           );
@@ -140,7 +143,7 @@ export default function Inventaris() {
                 <button onClick={() => handleEdit(t)} className="btn-secondary text-xs px-3 py-1 gap-1">
                   <Pencil size={14} /> Edit
                 </button>
-                <button onClick={() => handleDelete(t.id)} className="text-danger hover:text-red-700 p-1">
+                <button onClick={() => setDeletingTemplate(t)} className="text-danger hover:text-red-700 p-1">
                   <Trash2 size={16} />
                 </button>
               </div>
@@ -150,77 +153,96 @@ export default function Inventaris() {
       )}
 
       {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md m-4">
-            <div className="p-lg border-b border-border-default flex items-center justify-between">
-              <h3 className="font-bold text-lg">{editingId ? 'Edit Item' : 'Tambah Item Inventaris'}</h3>
-              <button onClick={() => { setShowModal(false); resetForm(); }} className="text-text-secondary">✕</button>
-            </div>
-            <form onSubmit={handleSubmit} className="p-lg space-y-md">
-              <div>
-                <label className="label-field">Nama Item</label>
-                <input
-                  type="text"
-                  className="input-field"
-                  required
-                  placeholder="cth. Kasur Single, Lemari 2 Pintu"
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-md">
-                <div>
-                  <label className="label-field">Jumlah</label>
-                  <input
-                    type="number"
-                    className="input-field"
-                    min={1}
-                    value={form.qty ?? 1}
-                    onChange={(e) => setForm((f) => ({ ...f, qty: Number(e.target.value) }))}
-                  />
-                </div>
-                <div>
-                  <label className="label-field">Kondisi</label>
-                  <select
-                    className="input-field"
-                    value={form.condition ?? 'baik'}
-                    onChange={(e) => setForm((f) => ({ ...f, condition: e.target.value as ItemCondition }))}
-                  >
-                    {CONDITIONS.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="label-field">Harga Beli (opsional)</label>
-                <input
-                  type="number"
-                  className="input-field"
-                  min={0}
-                  placeholder="Rp 0"
-                  value={form.purchase_price ?? ''}
-                  onChange={(e) => setForm((f) => ({ ...f, purchase_price: e.target.value ? Number(e.target.value) : undefined }))}
-                />
-              </div>
-              <div>
-                <label className="label-field">Catatan (opsional)</label>
-                <textarea
-                  className="input-field h-20 resize-none"
-                  placeholder="Keterangan tambahan"
-                  value={form.notes ?? ''}
-                  onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                />
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" className="btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>Batal</button>
-                <button type="submit" className="btn-primary" disabled={submitting}>
-                  {submitting ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Tambah'}
-                </button>
-              </div>
-            </form>
+      <Modal
+        isOpen={showModal}
+        onClose={() => {
+          setShowModal(false);
+          resetForm();
+        }}
+        title={editingId ? 'Edit Item' : 'Tambah Item Inventaris'}
+        maxWidth="max-w-md"
+      >
+        <form onSubmit={handleSubmit} className="space-y-md">
+          <div>
+            <label className="label-field">Nama Item</label>
+            <input
+              type="text"
+              className="input-field"
+              required
+              placeholder="cth. Kasur Single, Lemari 2 Pintu"
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+            />
           </div>
-        </div>
-      )}
+          <div className="grid grid-cols-2 gap-md">
+            <div>
+              <label className="label-field">Jumlah</label>
+              <input
+                type="number"
+                className="input-field"
+                min={1}
+                value={form.qty ?? 1}
+                onChange={(e) => setForm((f) => ({ ...f, qty: Number(e.target.value) }))}
+              />
+            </div>
+            <div>
+              <label className="label-field">Kondisi</label>
+              <select
+                className="input-field"
+                value={form.condition ?? 'baik'}
+                onChange={(e) => setForm((f) => ({ ...f, condition: e.target.value as ItemCondition }))}
+              >
+                {CONDITIONS.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="label-field">Harga Beli (opsional)</label>
+            <input
+              type="number"
+              className="input-field"
+              min={0}
+              placeholder="Rp 0"
+              value={form.purchase_price ?? ''}
+              onChange={(e) => setForm((f) => ({ ...f, purchase_price: e.target.value ? Number(e.target.value) : undefined }))}
+            />
+          </div>
+          <div>
+            <label className="label-field">Catatan (opsional)</label>
+            <textarea
+              className="input-field h-20 resize-none"
+              placeholder="Keterangan tambahan"
+              value={form.notes ?? ''}
+              onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" className="btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>Batal</button>
+            <button type="submit" className="btn-primary" disabled={submitting}>
+              {submitting ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Tambah'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        isOpen={!!deletingTemplate}
+        onClose={() => setDeletingTemplate(null)}
+        title="Hapus Item Inventaris"
+        maxWidth="max-w-md"
+      >
+        {deletingTemplate && (
+          <div className="space-y-5">
+            <p className="text-sm text-text-secondary">
+              Anda yakin ingin menghapus item <span className="font-semibold text-text-primary">{deletingTemplate.name}</span>?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button type="button" className="btn-secondary" onClick={() => setDeletingTemplate(null)}>Batal</button>
+              <button type="button" className="btn-danger" onClick={handleDelete}>Hapus</button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

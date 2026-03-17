@@ -29,7 +29,7 @@ export default function ResidentDashboard() {
   const recentInvoices = invoices.slice(0, 5);
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       {/* Welcome Section */}
       <section className="space-y-1">
         <h2 className="text-2xl font-bold">Halo, {user?.full_name}! ðŸ‘‹</h2>

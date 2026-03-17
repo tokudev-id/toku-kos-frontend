@@ -1,6 +1,7 @@
 import { Avatar } from '../atoms/Avatar';
 import { Tag } from '../atoms/Tag';
 import { cn } from '@/utils/cn';
+import { useNavigate } from 'react-router-dom';
 
 interface MaintenanceItemProps {
   category: string;
@@ -12,6 +13,11 @@ interface MaintenanceItemProps {
 }
 
 export function MaintenanceItem({ category, location, requestId, description, assignee, className }: MaintenanceItemProps) {
+  const navigate = useNavigate();
+
+  const handleDetailClick = () => {
+    navigate(`/maintenance?id=${requestId}`);
+  }
   return (
     <div className={cn("p-4 border border-border-default rounded-2xl bg-white hover:border-brand-primary hover:shadow-card transition-all group", className)}>
       <div className="flex justify-between items-start mb-3">
@@ -32,7 +38,7 @@ export function MaintenanceItem({ category, location, requestId, description, as
           <Avatar src={assignee.avatar} name={assignee.name} size="sm" />
           <span className="text-xs font-medium text-text-primary">{assignee.name}</span>
         </div>
-        <button className="text-[10px] font-bold text-brand-primary hover:underline uppercase tracking-widest">Detail</button>
+        <button onClick={handleDetailClick} className="text-[10px] font-bold text-brand-primary hover:underline uppercase tracking-widest">Detail</button>
       </div>
     </div>
   );

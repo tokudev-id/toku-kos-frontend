@@ -3,6 +3,7 @@ import {
   Plus, Search, FileText, CheckCircle2, Clock, AlertCircle, Eye, ChevronDown, Download, MessageCircle
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { Modal } from '@/components/molecules';
 import { invoiceService } from '@/api/invoice.service';
 import type { Invoice, InvoiceStatus, CreateInvoiceDto, InvoiceItemCategory } from '@/api/invoice.service';
 import { residentService } from '@/api/resident.service';
@@ -280,168 +281,167 @@ export default function Tagihan() {
       </div>
 
       {/* Create Invoice Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4">
-            <div className="p-lg border-b border-border-default flex items-center justify-between">
-              <h3 className="font-bold text-lg">Buat Tagihan Baru</h3>
-              <button onClick={() => { setShowModal(false); resetForm(); }} className="text-text-secondary hover:text-text-primary">✕</button>
+      <Modal
+        isOpen={showModal}
+        onClose={() => {
+          setShowModal(false);
+          resetForm();
+        }}
+        title="Buat Tagihan Baru"
+        maxWidth="max-w-2xl"
+      >
+        <form onSubmit={handleCreateInvoice} className="space-y-md">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
+            <div>
+              <label className="label-field">Penghuni</label>
+              <select
+                className="input-field"
+                required
+                value={form.resident_id}
+                onChange={(e) => setForm((f) => ({ ...f, resident_id: e.target.value }))}
+              >
+                <option value="">Pilih penghuni...</option>
+                {residents.map((r) => (
+                  <option key={r.id} value={r.id}>{r.full_name} {r.room ? `(${r.room.room_code})` : ''}</option>
+                ))}
+              </select>
             </div>
-            <form onSubmit={handleCreateInvoice} className="p-lg space-y-md">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
-                <div>
-                  <label className="label-field">Penghuni</label>
+            <div>
+              <label className="label-field">Periode (opsional)</label>
+              <input
+                type="text"
+                className="input-field"
+                placeholder="cth. Januari 2025"
+                value={form.period ?? ''}
+                onChange={(e) => setForm((f) => ({ ...f, period: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="label-field">Jatuh Tempo</label>
+              <input
+                type="date"
+                className="input-field"
+                required
+                value={form.due_date}
+                onChange={(e) => setForm((f) => ({ ...f, due_date: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="label-field">Diskon (Rp)</label>
+              <input
+                type="number"
+                className="input-field"
+                min={0}
+                value={form.discount ?? 0}
+                onChange={(e) => setForm((f) => ({ ...f, discount: Number(e.target.value) }))}
+              />
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="label-field mb-0">Item Tagihan</label>
+              <button type="button" onClick={addItem} className="btn-secondary text-xs px-3 py-1">
+                <Plus size={14} /> Tambah Item
+              </button>
+            </div>
+            <div className="space-y-2">
+              {form.items.map((item, idx) => (
+                <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+                  <input
+                    className="input-field col-span-4"
+                    placeholder="Nama item"
+                    required
+                    value={item.name}
+                    onChange={(e) => updateItem(idx, 'name', e.target.value)}
+                  />
                   <select
-                    className="input-field"
-                    required
-                    value={form.resident_id}
-                    onChange={(e) => setForm((f) => ({ ...f, resident_id: e.target.value }))}
+                    className="input-field col-span-3"
+                    value={item.category}
+                    onChange={(e) => updateItem(idx, 'category', e.target.value)}
                   >
-                    <option value="">Pilih penghuni...</option>
-                    {residents.map((r) => (
-                      <option key={r.id} value={r.id}>{r.full_name} {r.room ? `(${r.room.room_code})` : ''}</option>
-                    ))}
+                    {ITEM_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
-                </div>
-                <div>
-                  <label className="label-field">Periode (opsional)</label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    placeholder="cth. Januari 2025"
-                    value={form.period ?? ''}
-                    onChange={(e) => setForm((f) => ({ ...f, period: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className="label-field">Jatuh Tempo</label>
-                  <input
-                    type="date"
-                    className="input-field"
-                    required
-                    value={form.due_date}
-                    onChange={(e) => setForm((f) => ({ ...f, due_date: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className="label-field">Diskon (Rp)</label>
                   <input
                     type="number"
-                    className="input-field"
-                    min={0}
-                    value={form.discount ?? 0}
-                    onChange={(e) => setForm((f) => ({ ...f, discount: Number(e.target.value) }))}
+                    className="input-field col-span-2"
+                    placeholder="Qty"
+                    min={1}
+                    value={item.qty ?? 1}
+                    onChange={(e) => updateItem(idx, 'qty', Number(e.target.value))}
                   />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="label-field mb-0">Item Tagihan</label>
-                  <button type="button" onClick={addItem} className="btn-secondary text-xs px-3 py-1">
-                    <Plus size={14} /> Tambah Item
-                  </button>
-                </div>
-                <div className="space-y-2">
-                  {form.items.map((item, idx) => (
-                    <div key={idx} className="grid grid-cols-12 gap-2 items-center">
-                      <input
-                        className="input-field col-span-4"
-                        placeholder="Nama item"
-                        required
-                        value={item.name}
-                        onChange={(e) => updateItem(idx, 'name', e.target.value)}
-                      />
-                      <select
-                        className="input-field col-span-3"
-                        value={item.category}
-                        onChange={(e) => updateItem(idx, 'category', e.target.value)}
-                      >
-                        {ITEM_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                      <input
-                        type="number"
-                        className="input-field col-span-2"
-                        placeholder="Qty"
-                        min={1}
-                        value={item.qty ?? 1}
-                        onChange={(e) => updateItem(idx, 'qty', Number(e.target.value))}
-                      />
-                      <input
-                        type="number"
-                        className="input-field col-span-2"
-                        placeholder="Harga"
-                        min={0}
-                        required
-                        value={item.unit_price}
-                        onChange={(e) => updateItem(idx, 'unit_price', Number(e.target.value))}
-                      />
-                      <button
-                        type="button"
-                        disabled={form.items.length === 1}
-                        onClick={() => removeItem(idx)}
-                        className="text-danger col-span-1 disabled:opacity-30"
-                      >✕</button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <div className="text-right">
-                  {(form.discount ?? 0) > 0 && (
-                    <p className="text-sm text-text-secondary">Diskon: -{formatCurrency(form.discount ?? 0)}</p>
-                  )}
-                  <p className="font-bold text-lg">Total: {formatCurrency(totalAmount)}</p>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" className="btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>Batal</button>
-                <button type="submit" className="btn-primary" disabled={submitting}>
-                  {submitting ? 'Menyimpan...' : 'Buat Tagihan'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Invoice Detail Modal */}
-      {selectedInvoice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg m-4">
-            <div className="p-lg border-b border-border-default flex items-center justify-between">
-              <h3 className="font-bold text-lg">{selectedInvoice.invoice_number}</h3>
-              <button onClick={() => setSelectedInvoice(null)} className="text-text-secondary hover:text-text-primary">✕</button>
-            </div>
-            <div className="p-lg space-y-3">
-              <div className="flex justify-between text-sm"><span className="text-text-secondary">Penghuni</span><span className="font-semibold">{selectedInvoice.contract?.resident?.full_name}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-text-secondary">Kamar</span><span>{selectedInvoice.contract?.room?.room_code ?? '-'}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-text-secondary">Periode</span><span>{selectedInvoice.period ?? '-'}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-text-secondary">Jatuh Tempo</span><span>{new Date(selectedInvoice.due_date).toLocaleDateString('id-ID')}</span></div>
-              <hr className="border-border-default" />
-              {selectedInvoice.items?.map((item) => (
-                <div key={item.id} className="flex justify-between text-sm">
-                  <span>{item.name} <span className="text-text-secondary text-xs">({item.category})</span> x{item.qty}</span>
-                  <span>{formatCurrency(item.unit_price * item.qty)}</span>
+                  <input
+                    type="number"
+                    className="input-field col-span-2"
+                    placeholder="Harga"
+                    min={0}
+                    required
+                    value={item.unit_price}
+                    onChange={(e) => updateItem(idx, 'unit_price', Number(e.target.value))}
+                  />
+                  <button
+                    type="button"
+                    disabled={form.items.length === 1}
+                    onClick={() => removeItem(idx)}
+                    className="text-danger col-span-1 disabled:opacity-30"
+                  >✕</button>
                 </div>
               ))}
-              {(selectedInvoice.discount ?? 0) > 0 && (
-                <div className="flex justify-between text-sm text-success"><span>Diskon</span><span>-{formatCurrency(selectedInvoice.discount ?? 0)}</span></div>
-              )}
-              <hr className="border-border-default" />
-              <div className="flex justify-between font-bold"><span>Total</span><span>{formatCurrency(selectedInvoice.total_amount)}</span></div>
-              <div className="flex justify-between text-sm">
-                <span className="text-text-secondary">Status</span>
-                <span className={cn('px-2 py-0.5 rounded-full text-xs font-bold', STATUS_CLASSES[selectedInvoice.status])}>
-                  {STATUS_LABELS[selectedInvoice.status]}
-                </span>
-              </div>
             </div>
           </div>
-        </div>
-      )}
+
+          <div className="flex justify-end">
+            <div className="text-right">
+              {(form.discount ?? 0) > 0 && (
+                <p className="text-sm text-text-secondary">Diskon: -{formatCurrency(form.discount ?? 0)}</p>
+              )}
+              <p className="font-bold text-lg">Total: {formatCurrency(totalAmount)}</p>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" className="btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>Batal</button>
+            <button type="submit" className="btn-primary" disabled={submitting}>
+              {submitting ? 'Menyimpan...' : 'Buat Tagihan'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Invoice Detail Modal */}
+      <Modal
+        isOpen={!!selectedInvoice}
+        onClose={() => setSelectedInvoice(null)}
+        title={selectedInvoice?.invoice_number ?? 'Detail Tagihan'}
+        maxWidth="max-w-lg"
+      >
+        {selectedInvoice && (
+          <div className="space-y-3">
+            <div className="flex justify-between text-sm"><span className="text-text-secondary">Penghuni</span><span className="font-semibold">{selectedInvoice.contract?.resident?.full_name}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-text-secondary">Kamar</span><span>{selectedInvoice.contract?.room?.room_code ?? '-'}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-text-secondary">Periode</span><span>{selectedInvoice.period ?? '-'}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-text-secondary">Jatuh Tempo</span><span>{new Date(selectedInvoice.due_date).toLocaleDateString('id-ID')}</span></div>
+            <hr className="border-border-default" />
+            {selectedInvoice.items?.map((item) => (
+              <div key={item.id} className="flex justify-between text-sm">
+                <span>{item.name} <span className="text-text-secondary text-xs">({item.category})</span> x{item.qty}</span>
+                <span>{formatCurrency(item.unit_price * item.qty)}</span>
+              </div>
+            ))}
+            {(selectedInvoice.discount ?? 0) > 0 && (
+              <div className="flex justify-between text-sm text-success"><span>Diskon</span><span>-{formatCurrency(selectedInvoice.discount ?? 0)}</span></div>
+            )}
+            <hr className="border-border-default" />
+            <div className="flex justify-between font-bold"><span>Total</span><span>{formatCurrency(selectedInvoice.total_amount)}</span></div>
+            <div className="flex justify-between text-sm">
+              <span className="text-text-secondary">Status</span>
+              <span className={cn('px-2 py-0.5 rounded-full text-xs font-bold', STATUS_CLASSES[selectedInvoice.status])}>
+                {STATUS_LABELS[selectedInvoice.status]}
+              </span>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

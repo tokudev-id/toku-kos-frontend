@@ -11,7 +11,17 @@ interface ModalProps {
   maxWidth?: 'max-w-sm' | 'max-w-md' | 'max-w-lg' | 'max-w-xl' | 'max-w-2xl' | 'max-w-3xl' | 'max-w-4xl';
 }
 
-export function Modal({ isOpen, onClose, title, children, maxWidth = "max-w-lg" }: ModalProps) {
+const MAX_WIDTH_CLASSES = {
+  'max-w-sm': 'max-w-sm',
+  'max-w-md': 'max-w-md',
+  'max-w-lg': 'max-w-lg',
+  'max-w-xl': 'max-w-xl',
+  'max-w-2xl': 'max-w-2xl',
+  'max-w-3xl': 'max-w-3xl',
+  'max-w-4xl': 'max-w-4xl',
+} as const;
+
+export function Modal({ isOpen, onClose, title, children, maxWidth = "max-w-3xl" }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,7 +52,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = "max-w-lg" 
         ref={modalRef}
         className={cn(
           "bg-white w-full min-w-[320px] rounded-3xl shadow-elevated z-10 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 fade-in duration-300",
-          maxWidth
+          MAX_WIDTH_CLASSES[maxWidth]
         )}
         role="dialog"
         aria-modal="true"

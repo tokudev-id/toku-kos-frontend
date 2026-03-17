@@ -6,6 +6,7 @@ interface SectionHeaderProps {
   subtitle?: string;
   action?: {
     label: string;
+    icon?: React.ReactNode;
     onClick: () => void;
   };
   className?: string;
@@ -19,7 +20,8 @@ export function SectionHeader({ title, subtitle, action, className }: SectionHea
         {subtitle && <p className="text-sm text-text-secondary">{subtitle}</p>}
       </div>
       {action && (
-        <Button onClick={action.onClick} variant="primary" size="sm">
+        <Button onClick={action.onClick} variant="primary" size="md">
+          {action.icon && <span className="mr-2">{action.icon}</span>}
           {action.label}
         </Button>
       )}

@@ -14,32 +14,56 @@ export interface Property {
   created_at: string;
 }
 
+type PropertyPayload = {
+  name: string;
+  address: string;
+  city?: string;
+  province?: string;
+  zip_code?: string;
+  description?: string;
+  notes?: string;
+};
+
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;
 }
 
 export const propertyService = {
-  getProperties: async (page = 1, limit = 10) => {
+  normalizeProperty: (property: Property): Property => ({
+    ...property,
+    description: property.description ?? property.notes,
+  }),
+
+  toBackendPayload: (data: Partial<PropertyPayload>) => ({
+    ...data,
+    notes: data.notes ?? data.description,
+    description: data.description ?? data.notes,
+  }),
+
+  getProperties: async (page = 1, limit = 10, search?: string) => {
     const response = await api.get<PaginatedResponse<Property>>('/properties', {
-      params: { page, limit },
+      params: { page, limit, search },
     });
-    return response.data;
+    return {
+      ...response.data,
+      data: response.data.data.map((property) => propertyService.normalizeProperty(property)),
+    };
   },
 
   getProperty: async (id: string) => {
     const response = await api.get<Property>(`/properties/${id}`);
-    return response.data;
+    return propertyService.normalizeProperty(response.data);
   },
 
-  createProperty: async (data: Omit<Property, 'id' | 'created_at'>) => {
-    const response = await api.post<Property>('/properties', data);
-    return response.data;
+  createProperty: async (data: PropertyPayload) => {
+    const response = await api.post<Property>('/properties', propertyService.toBackendPayload(data));
+    return propertyService.normalizeProperty(response.data);
   },
 
-  updateProperty: async (id: string, data: Partial<Omit<Property, 'id' | 'created_at'>>) => {
-    const response = await api.patch<Property>(`/properties/${id}`, data);
-    return response.data;
+  updateProperty: async (id: string, data: Partial<PropertyPayload>) => {
+    const response = await api.patch<Property>(`/properties/${id}`, propertyService.toBackendPayload(data));
+    return propertyService.normalizeProperty(response.data);
   },
 
   deleteProperty: async (id: string) => {

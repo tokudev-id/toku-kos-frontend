@@ -5,7 +5,7 @@ import { paymentService } from '@/api/payment.service';
 import type { Payment, CreatePaymentDto, PaymentMethod } from '@/api/payment.service';
 import { invoiceService } from '@/api/invoice.service';
 import type { Invoice } from '@/api/invoice.service';
-import { Modal } from '@/components/Modal';
+import { Modal } from '@/components/molecules';
 
 const METHOD_LABELS: Record<PaymentMethod, string> = {
   CASH: 'Tunai',
@@ -200,7 +200,7 @@ export default function Pembayaran() {
         isOpen={showModal} 
         onClose={() => { setShowModal(false); resetForm(); }} 
         title="Catat Pembayaran"
-        maxWidth="max-w-lg"
+        
       >
         <form onSubmit={handleSubmit} className="space-y-md">
           <div>

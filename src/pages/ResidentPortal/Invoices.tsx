@@ -50,7 +50,7 @@ export default function ResidentInvoices() {
     .reduce((sum, i) => sum + i.total_amount, 0);
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <div>
         <h2 className="text-2xl font-bold">Tagihan Saya</h2>
         <p className="text-text-secondary">Riwayat semua tagihan kamar Anda.</p>
