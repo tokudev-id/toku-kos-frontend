@@ -1,8 +1,13 @@
 import { Bell, MessageCircle } from 'lucide-react';
 import { SearchBar } from './molecules/SearchBar';
 import { Avatar } from './atoms/Avatar';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export function Header() {
+  const user = useAuthStore((state) => state.user);
+  const displayName = user?.full_name ?? 'Owner';
+  const companyName = user?.company_name ?? 'TokuKos';
+
   return (
     <header className="h-24 flex items-center justify-between px-6 md:px-10 sticky top-0 bg-surface-bg/80 backdrop-blur-md z-20">
       <div className="flex items-center gap-5">
@@ -14,8 +19,8 @@ export function Header() {
           />
         </div>
         <div className="hidden md:block">
-          <h1 className="text-3xl font-bold font-display tracking-tight text-text-primary">Hello, Budi!</h1>
-          <p className="text-sm text-text-secondary font-medium mt-1">Explore information and activity about your property</p>
+          <h1 className="text-3xl font-bold font-display tracking-tight text-text-primary">Hello, {displayName}!</h1>
+          <p className="text-sm text-text-secondary font-medium mt-1">Explore information and activity about {companyName}</p>
         </div>
       </div>
 
@@ -35,13 +40,12 @@ export function Header() {
 
         <div className="hidden sm:flex items-center gap-3 ml-4 pl-4 border-l border-border-muted group cursor-pointer">
           <div className="text-right">
-            <p className="text-sm font-bold text-text-primary leading-tight group-hover:text-brand-primary transition-colors">Budi Kosan</p>
-            <p className="text-[10px] text-text-secondary uppercase tracking-widest font-bold font-sans">Owner</p>
+            <p className="text-sm font-bold text-text-primary leading-tight group-hover:text-brand-primary transition-colors">{companyName}</p>
+            <p className="text-[10px] text-text-secondary uppercase tracking-widest font-bold font-sans">{user?.role ?? 'OWNER'}</p>
           </div>
-          <Avatar name="Budi Kosan" size="md" className="shadow-sm border-2 border-transparent group-hover:border-brand-primary transition-all bg-brand-primary-soft" />
+          <Avatar name={companyName} size="md" className="shadow-sm border-2 border-transparent group-hover:border-brand-primary transition-all bg-brand-primary-soft" />
         </div>
       </div>
     </header>
   );
 }
-

@@ -1,4 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { appPaths } from './app/paths';
+import { GuestRoute } from './features/auth/guards/GuestRoute';
+import { ProtectedRoute } from './features/auth/guards/ProtectedRoute';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { ResidentLayout } from './layouts/ResidentLayout';
 import Overview from './pages/Overview';
@@ -22,53 +25,72 @@ import ResidentDashboard from './pages/ResidentPortal/Dashboard';
 import ResidentMaintenance from './pages/ResidentPortal/Maintenance';
 import ResidentInvoices from './pages/ResidentPortal/Invoices';
 import ResidentProfile from './pages/ResidentPortal/Profile';
-import { useAuthStore } from './store/useAuthStore';
 
 function App() {
-  const user = useAuthStore((state) => state.user);
-  const token = localStorage.getItem('toku_token');
-  
-  // User is only authenticated if BOTH user exists AND token exists
-  // This prevents redirect loops when session expires
-  const isAuthenticated = !!user && !!token;
-
   return (
     <BrowserRouter>
       <Routes>
-        {/* Auth Routes */}
-        <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" replace />} />
-        <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" replace />} />
-        <Route path="/resident/login" element={!isAuthenticated ? <ResidentLogin /> : <Navigate to="/resident" replace />} />
-
-        {/* Protected Owner Dashboard Routes */}
-        <Route element={(isAuthenticated && user?.role === 'OWNER') ? <DashboardLayout /> : <Navigate to="/login" replace />}>
-          <Route path="/" element={<Overview />} />
-          <Route path="/properties" element={<Properties />} />
-          <Route path="/properties/:id" element={<PropertyDetails />} />
-          <Route path="/rooms" element={<div className="p-lg">Halaman Kamar (Kelola via Detail Properti)</div>} />
-          <Route path="/residents" element={<Residents />} />
-          <Route path="/finance" element={<Finance />} />
-          <Route path="/tagihan" element={<Tagihan />} />
-          <Route path="/pembayaran" element={<Pembayaran />} />
-          <Route path="/pengeluaran" element={<Pengeluaran />} />
-          <Route path="/inventaris" element={<Inventaris />} />
-          <Route path="/laporan" element={<Laporan />} />
-          <Route path="/pengaturan" element={<Pengaturan />} />
-          <Route path="/billing" element={<Billing />} />
-          <Route path="/maintenance" element={<Maintenance />} />
-          <Route path="/whatsapp" element={<Whatsapp />} />
+        <Route
+          element={
+            <GuestRoute
+              ownerRedirectTo={appPaths.owner.dashboard}
+              residentRedirectTo={appPaths.resident.home}
+            />
+          }
+        >
+          <Route path={appPaths.auth.ownerLogin} element={<Login />} />
+          <Route path={appPaths.auth.ownerRegister} element={<Register />} />
+          <Route path={appPaths.auth.residentLogin} element={<ResidentLogin />} />
         </Route>
 
-        {/* Protected Resident Portal Routes */}
-        <Route element={(isAuthenticated && user?.role === 'RESIDENT') ? <ResidentLayout /> : <Navigate to="/resident/login" replace />}>
-          <Route path="/resident" element={<ResidentDashboard />} />
-          <Route path="/resident/maintenance" element={<ResidentMaintenance />} />
-          <Route path="/resident/invoices" element={<ResidentInvoices />} />
-          <Route path="/resident/profile" element={<ResidentProfile />} />
+        <Route
+          element={
+            <ProtectedRoute
+              allowedRoles={['OWNER']}
+              redirectTo={appPaths.auth.ownerLogin}
+            />
+          }
+        >
+          <Route element={<DashboardLayout />}>
+            <Route path="/" element={<Navigate to={appPaths.owner.dashboard} replace />} />
+            <Route path={appPaths.owner.dashboard} element={<Overview />} />
+            <Route path={appPaths.owner.properties} element={<Properties />} />
+            <Route path="/properties/:id" element={<PropertyDetails />} />
+            <Route
+              path={appPaths.owner.rooms}
+              element={<div className="p-lg">Halaman Kamar (Kelola via Detail Properti)</div>}
+            />
+            <Route path={appPaths.owner.residents} element={<Residents />} />
+            <Route path={appPaths.owner.finance} element={<Finance />} />
+            <Route path={appPaths.owner.invoices} element={<Tagihan />} />
+            <Route path={appPaths.owner.payments} element={<Pembayaran />} />
+            <Route path={appPaths.owner.expenses} element={<Pengeluaran />} />
+            <Route path={appPaths.owner.inventory} element={<Inventaris />} />
+            <Route path={appPaths.owner.reports} element={<Laporan />} />
+            <Route path={appPaths.owner.settings} element={<Pengaturan />} />
+            <Route path={appPaths.owner.billing} element={<Billing />} />
+            <Route path={appPaths.owner.maintenance} element={<Maintenance />} />
+            <Route path={appPaths.owner.whatsapp} element={<Whatsapp />} />
+          </Route>
         </Route>
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to={user?.role === 'RESIDENT' ? "/resident" : "/"} replace />} />
+        <Route
+          element={
+            <ProtectedRoute
+              allowedRoles={['RESIDENT']}
+              redirectTo={appPaths.auth.residentLogin}
+            />
+          }
+        >
+          <Route element={<ResidentLayout />}>
+            <Route path={appPaths.resident.home} element={<ResidentDashboard />} />
+            <Route path={appPaths.resident.maintenance} element={<ResidentMaintenance />} />
+            <Route path={appPaths.resident.invoices} element={<ResidentInvoices />} />
+            <Route path={appPaths.resident.profile} element={<ResidentProfile />} />
+          </Route>
+        </Route>
+
+        <Route path="*" element={<Navigate to={appPaths.owner.dashboard} replace />} />
       </Routes>
     </BrowserRouter>
   );

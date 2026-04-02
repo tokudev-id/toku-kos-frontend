@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { AUTH_STORE_KEY, clearAuthSession, setAuthToken } from '@/features/auth/session';
 
-interface User {
+export interface AuthUser {
   id: string;
   email: string;
   full_name: string;
@@ -10,10 +11,10 @@ interface User {
 }
 
 interface AuthState {
-  user: User | null;
+  user: AuthUser | null;
   token: string | null;
   isAuthenticated: boolean;
-  setAuth: (user: User, token: string) => void;
+  setAuth: (user: AuthUser, token: string) => void;
   logout: () => void;
 }
 
@@ -24,19 +25,16 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       setAuth: (user, token) => {
-        localStorage.setItem('toku_token', token);
+        setAuthToken(token);
         set({ user, token, isAuthenticated: true });
       },
       logout: () => {
-        // Clear both token and persisted store
-        localStorage.removeItem('toku_token');
-        localStorage.removeItem('toku-auth-storage');
+        clearAuthSession();
         set({ user: null, token: null, isAuthenticated: false });
       },
     }),
     {
-      name: 'toku-auth-storage',
+      name: AUTH_STORE_KEY,
     }
   )
 );
-

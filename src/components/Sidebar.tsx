@@ -1,37 +1,14 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
-  LayoutDashboard, 
-  Building2, 
-  DoorOpen, 
-  Users, 
-  FileText,
-  CreditCard,
-  TrendingDown,
-  Package,
-  BarChart2,
   Settings, 
   LogOut,
-  Wrench,
-  MessageCircle,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/utils/cn';
+import { appPaths } from '@/app/paths';
+import { ownerNavigationItems } from '@/app/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
-
-const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-  { icon: Building2, label: 'Properti', path: '/properties' },
-  { icon: DoorOpen, label: 'Kamar', path: '/rooms' },
-  { icon: Users, label: 'Penghuni', path: '/residents' },
-  { icon: FileText, label: 'Tagihan', path: '/tagihan' },
-  { icon: CreditCard, label: 'Pembayaran', path: '/pembayaran' },
-  { icon: TrendingDown, label: 'Pengeluaran', path: '/pengeluaran' },
-  { icon: Package, label: 'Inventaris', path: '/inventaris' },
-  { icon: BarChart2, label: 'Laporan', path: '/laporan' },
-  { icon: Wrench, label: 'Keluhan', path: '/maintenance' },
-  { icon: MessageCircle, label: 'WhatsApp', path: '/whatsapp' },
-];
 
 export function Sidebar() {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -40,7 +17,7 @@ export function Sidebar() {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate(appPaths.auth.ownerLogin);
   };
 
   return (
@@ -75,10 +52,10 @@ export function Sidebar() {
 
         {/* Nav Items */}
         <nav className="flex-1 py-6 px-3 space-y-2 overflow-y-auto no-scrollbar">
-          {navItems.map((item) => (
+          {ownerNavigationItems.map((item) => (
             <NavLink
-              key={item.path}
-              to={item.path}
+              key={item.href}
+              to={item.href}
               title={!isExpanded ? item.label : undefined}
               className={({ isActive }) => cn(
                 "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative",
@@ -108,7 +85,7 @@ export function Sidebar() {
         {/* Footer */}
         <div className="p-3 border-t border-border-muted space-y-2">
           <NavLink
-            to="/pengaturan"
+            to={appPaths.owner.settings}
             className={({ isActive }) => cn(
               "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200",
               isActive ? "bg-brand-primary text-white shadow-card" : "text-text-secondary hover:text-brand-primary hover:bg-brand-primary-soft"
@@ -140,10 +117,10 @@ export function Sidebar() {
 
       {/* Mobile Bottom Nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-border-default z-40 flex items-center justify-around px-2 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-        {navItems.slice(0, 5).map((item) => (
+        {ownerNavigationItems.slice(0, 5).map((item) => (
           <NavLink
-            key={item.path}
-            to={item.path}
+            key={item.href}
+            to={item.href}
             className={({ isActive }) => cn(
               "flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all",
               isActive ? "text-brand-primary bg-brand-primary-soft" : "text-text-secondary"
@@ -157,4 +134,3 @@ export function Sidebar() {
     </>
   );
 }
-

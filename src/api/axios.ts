@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { appPaths, publicPaths } from '@/app/paths';
+import { getAuthToken } from '@/features/auth/session';
 import { useAuthStore } from '../store/useAuthStore';
 import { showNotification, SESSION_EXPIRED_MESSAGE } from '../utils/notification';
 
@@ -12,7 +14,7 @@ const api = axios.create({
 // Request Interceptor for JWT
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('toku_token');
+    const token = getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -29,26 +31,17 @@ api.interceptors.response.use(
     
     // Auto-logout on 401 Unauthorized (session expired or invalid token)
     if (error.response?.status === 401) {
-      // Check if user is attempting to access login/register pages
-      const isOnAuthPage = 
-        window.location.pathname === '/login' || 
-        window.location.pathname === '/register' ||
-        window.location.pathname === '/resident/login';
+      const isOnAuthPage = publicPaths.has(window.location.pathname);
 
       if (!isOnAuthPage) {
-        // Get user role before clearing auth
         const currentUser = useAuthStore.getState().user;
         const role = currentUser?.role;
-        
-        // Clear token and auth store
-        localStorage.removeItem('toku_token');
+
         useAuthStore.getState().logout();
-        
-        // Show notification to user
         showNotification(SESSION_EXPIRED_MESSAGE, 'warning');
-        
-        // Redirect to appropriate login page
-        const loginPath = role === 'RESIDENT' ? '/resident/login' : '/login';
+
+        const loginPath =
+          role === 'RESIDENT' ? appPaths.auth.residentLogin : appPaths.auth.ownerLogin;
         window.location.href = loginPath;
       }
     }

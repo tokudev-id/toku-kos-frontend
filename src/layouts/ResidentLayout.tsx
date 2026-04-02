@@ -1,23 +1,13 @@
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuthStore';
-import { LogOut, Home, FileText, User, Wrench } from 'lucide-react';
+import { LogOut } from 'lucide-react';
+import { residentNavigationItems } from '@/app/navigation';
 import { cn } from '@/utils/cn';
 import { Link, useLocation } from 'react-router-dom';
 
 export function ResidentLayout() {
-  const { user, logout } = useAuthStore();
+  const logout = useAuthStore((state) => state.logout);
   const location = useLocation();
-
-  if (!user || user.role !== 'RESIDENT') {
-    return <Navigate to="/resident/login" replace />;
-  }
-
-  const navItems = [
-    { label: 'Beranda', path: '/resident', icon: Home },
-    { label: 'Tagihan', path: '/resident/invoices', icon: FileText },
-    { label: 'Keluhan', path: '/resident/maintenance', icon: Wrench },
-    { label: 'Profil', path: '/resident/profile', icon: User },
-  ];
 
   return (
     <div className="min-h-screen bg-surface-bg flex flex-col">
@@ -42,13 +32,13 @@ export function ResidentLayout() {
 
       {/* Bottom Navigation (Mobile First) */}
       <nav className="fixed bottom-0 left-0 right-0 bg-surface-card border-t border-border-default px-lg py-sm flex justify-around items-center z-10 safe-area-bottom">
-        {navItems.map((item) => {
+        {residentNavigationItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.path;
+          const isActive = location.pathname === item.href;
           return (
             <Link 
-              key={item.path} 
-              to={item.path}
+              key={item.href} 
+              to={item.href}
               className={cn(
                 "flex flex-col items-center gap-1 p-2 rounded-xl transition-all min-w-[64px]",
                 isActive ? "text-brand-primary" : "text-text-secondary"
