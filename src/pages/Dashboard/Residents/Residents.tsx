@@ -23,7 +23,7 @@ export default function Residents() {
     ktpResident, setKtpResident,
     ktpViewMode, setKtpViewMode,
     assignRoomResident, setAssignRoomResident,
-    saving, ktpFile, setKtpFile, ktpUploading,
+    saving, saveError, setSaveError, ktpFile, setKtpFile, ktpUploading,
     handleUpdate, onCheckoutConfirm, onKtpUpload
   } = useResidents();
 
@@ -78,15 +78,16 @@ export default function Residents() {
 
       <EditResidentModal
         isOpen={!!editingResident}
-        onClose={() => setEditingResident(null)}
+        onClose={() => { setEditingResident(null); setSaveError(null); }}
         resident={editingResident}
         onUpdate={handleUpdate}
         saving={saving}
+        error={saveError}
       />
 
       <CheckoutResidentModal
         isOpen={!!checkoutResident}
-        onClose={() => setCheckoutResident(null)}
+        onClose={() => { setCheckoutResident(null); setSaveError(null); }}
         resident={checkoutResident}
         onConfirm={onCheckoutConfirm}
         saving={saving}
@@ -94,13 +95,14 @@ export default function Residents() {
 
       <KtpModal
         isOpen={!!ktpResident}
-        onClose={() => { setKtpResident(null); setKtpFile(null); }}
+        onClose={() => { setKtpResident(null); setKtpFile(null); setSaveError(null); }}
         resident={ktpResident}
         viewMode={ktpViewMode}
         onKtpFileChange={setKtpFile}
         ktpFile={ktpFile}
         onUpload={onKtpUpload}
         uploading={ktpUploading}
+        error={saveError}
       />
 
       <AssignRoomModal

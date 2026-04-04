@@ -29,10 +29,11 @@ export function useContracts(residentId: string | null, onSuccess?: () => void) 
 
   const loadProperties = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const response = await propertyService.getProperties(1, 100);
       setProperties(response.data);
-    } catch (err) {
+    } catch {
       setError('Gagal memuat daftar properti');
     } finally {
       setIsLoading(false);
@@ -41,10 +42,11 @@ export function useContracts(residentId: string | null, onSuccess?: () => void) 
 
   const loadRooms = async (propertyId: string) => {
     setIsLoading(true);
+    setError(null);
     try {
       const response = await roomService.getRoomsByProperty(propertyId, 1, 100, undefined, undefined, 'AVAILABLE');
       setAvailableRooms(response.data);
-    } catch (err) {
+    } catch {
       setError('Gagal memuat daftar kamar');
     } finally {
       setIsLoading(false);
@@ -61,6 +63,16 @@ export function useContracts(residentId: string | null, onSuccess?: () => void) 
 
   const submitAssignment = async (data: Omit<AssignRoomPayload, 'room_id'>) => {
     if (!residentId || !selectedRoom) return;
+
+    if (new Date(data.end_date) <= new Date(data.start_date)) {
+      setError('Tanggal selesai harus lebih besar dari tanggal mulai.');
+      return;
+    }
+
+    if (data.agreed_price_per_month <= 0) {
+      setError('Harga sewa harus lebih besar dari 0.');
+      return;
+    }
     
     setSaving(true);
     setError(null);
@@ -71,9 +83,18 @@ export function useContracts(residentId: string | null, onSuccess?: () => void) 
       });
       onSuccess?.();
       reset();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Gagal membuat kontrak sewa');
-      throw err;
+    } catch (error: unknown) {
+      const fallbackMessage = 'Gagal membuat kontrak sewa';
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'response' in error &&
+        typeof (error as { response?: { data?: { message?: unknown } } }).response?.data?.message === 'string'
+      ) {
+        setError((error as { response: { data: { message: string } } }).response.data.message);
+      } else {
+        setError(fallbackMessage);
+      }
     } finally {
       setSaving(false);
     }

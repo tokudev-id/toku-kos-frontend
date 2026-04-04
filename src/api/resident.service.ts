@@ -7,6 +7,7 @@ export interface RentContract {
   start_date: string;
   end_date: string;
   agreed_price_per_month: number;
+  billing_cycle_months: number;
   status: 'ACTIVE' | 'TERMINATED' | 'COMPLETED';
   room?: {
     id: string;
@@ -101,6 +102,39 @@ export const residentService = {
     const response = await api.post<Resident>('/residents/me/upload-ktp', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+    return response.data;
+  },
+
+  generateExtensionInvoice: async (
+    contractId: string,
+    qty: number,
+    pricePerMonth?: number,
+    dueDate?: string,
+  ) => {
+    const response = await api.post('/finance/invoices/generate-extension', {
+      contract_id: contractId,
+      qty,
+      ...(pricePerMonth !== undefined && { price_per_month: pricePerMonth }),
+      ...(dueDate && { due_date: dueDate }),
+    });
+    return response.data;
+  },
+
+  updateContract: async (
+    residentId: string,
+    contractId: string,
+    data: {
+      start_date?: string;
+      end_date?: string;
+      agreed_price_per_month?: number;
+      billing_cycle_months?: number;
+      force?: boolean;
+    },
+  ) => {
+    const response = await api.patch<RentContract>(
+      `/residents/${residentId}/contracts/${contractId}`,
+      data,
+    );
     return response.data;
   },
 };

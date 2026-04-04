@@ -23,6 +23,10 @@ function ResidentCard({
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const residentName = resident.profile?.full_name || resident.full_name || '-';
+  const residentEmail = resident.profile?.email || resident.email || '-';
+  const residentPhone = resident.profile?.phone_number || resident.phone;
+  const residentKtpUrl = resident.profile?.identity_card_url || resident.identity_card_url;
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -39,37 +43,38 @@ function ResidentCard({
       <div className="p-md">
         <div className="flex justify-between items-start mb-4">
           <div className="w-12 h-12 rounded-2xl bg-brand-primary-soft text-brand-primary flex items-center justify-center font-bold text-xl shadow-sm group-hover:scale-110 transition-transform">
-            {resident.full_name.charAt(0)}
+            {residentName.charAt(0)}
           </div>
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 text-text-secondary hover:text-brand-primary hover:bg-brand-primary-soft rounded-lg transition-all"
+              className="inline-flex h-11 w-11 items-center justify-center text-text-secondary hover:text-brand-primary hover:bg-brand-primary-soft rounded-lg transition-all"
+              aria-label={`Aksi untuk ${residentName}`}
             >
               <MoreVertical size={18} />
             </button>
             {isMenuOpen && (
               <div className="absolute right-0 top-9 w-44 bg-white border border-border-default rounded-xl shadow-xl py-1 z-30 animate-in fade-in zoom-in duration-100 origin-top-right">
                 <button 
-                  onClick={() => navigate(`/residents/${resident.id}`)} 
+                  onClick={() => { navigate(`/residents/${resident.id}`); setIsMenuOpen(false); }} 
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-left"
                 >
                   <Eye size={14} className="text-brand-primary" /> Lihat Detail
                 </button>
-                <button onClick={() => onEdit(resident)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-left">
+                <button onClick={() => { onEdit(resident); setIsMenuOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-left">
                   <Pencil size={14} /> Edit Data
                 </button>
-                {resident.identity_card_url ? (
-                  <button onClick={() => onViewKtp(resident)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-left">
+                {residentKtpUrl ? (
+                  <button onClick={() => { onViewKtp(resident); setIsMenuOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-left">
                     <Upload size={14} /> Lihat KTP
                   </button>
                 ) : (
-                  <button onClick={() => onUploadKtp(resident)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-left">
+                  <button onClick={() => { onUploadKtp(resident); setIsMenuOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-left">
                     <Upload size={14} /> Upload KTP
                   </button>
                 )}
                 {resident.status !== 'CHECKOUT' && (
-                  <button onClick={() => onCheckout(resident)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-danger text-left border-t border-border-muted mt-1">
+                  <button onClick={() => { onCheckout(resident); setIsMenuOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-danger text-left border-t border-border-muted mt-1">
                     <LogOut size={14} /> Checkout
                   </button>
                 )}
@@ -80,7 +85,7 @@ function ResidentCard({
 
         <div className="space-y-1 mb-4">
           <h4 className="font-bold text-lg text-text-primary group-hover:text-brand-primary transition-colors truncate">
-            {resident.full_name}
+            {residentName}
           </h4>
           <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider inline-block ${
             resident.status === 'CHECKOUT' ? 'bg-slate-100 text-text-secondary' : 'bg-success/10 text-success'
@@ -92,12 +97,12 @@ function ResidentCard({
         <div className="space-y-2 text-sm text-text-secondary border-t border-border-muted pt-4">
           <div className="flex items-center gap-2">
             <Mail size={14} className="shrink-0" />
-            <span className="truncate">{resident.email}</span>
+            <span className="truncate">{residentEmail}</span>
           </div>
-          {resident.phone && (
+          {residentPhone && (
             <div className="flex items-center gap-2">
               <Phone size={14} className="shrink-0" />
-              <span>{resident.phone}</span>
+              <span>{residentPhone}</span>
             </div>
           )}
           <div className="flex items-center gap-2">
@@ -108,7 +113,7 @@ function ResidentCard({
             <div className="flex items-center gap-2 pt-1 border-t border-border-muted/50 mt-1">
               <MapPin size={14} className="shrink-0 text-brand-primary" />
               <span className="text-xs font-bold text-text-primary uppercase tracking-tight">
-                {resident.room.room_code} | <span className="font-medium text-text-secondary normal-case">{resident.room.property?.name}</span>
+                {resident.room.room_code} | <span className="font-medium text-text-secondary normal-case">{resident.room.property?.name || '-'}</span>
               </span>
             </div>
           ) : (

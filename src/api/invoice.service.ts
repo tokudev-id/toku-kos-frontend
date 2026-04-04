@@ -1,6 +1,6 @@
 import api from './axios';
 
-export type InvoiceStatus = 'UNPAID' | 'VERIFICATION_PENDING' | 'PAID' | 'OVERDUE';
+export type InvoiceStatus = 'UNPAID' | 'PARTIAL' | 'VERIFICATION_PENDING' | 'PAID' | 'OVERDUE';
 export type InvoiceItemCategory = 'Sewa' | 'Listrik' | 'Air' | 'Internet' | 'Lainnya';
 
 export interface InvoiceItem {
@@ -28,6 +28,8 @@ export interface Invoice {
   due_date: string;
   status: InvoiceStatus;
   paid_date?: string;
+  total_paid?: number;
+  remaining_balance?: number;
   created_at: string;
 }
 
@@ -69,6 +71,13 @@ export const invoiceService = {
 
   verifyInvoice: async (id: string) => {
     const response = await api.post<Invoice>(`/finance/invoices/${id}/verify`);
+    return response.data;
+  },
+  
+  markAsPaid: async (id: string, paymentMethod: string = 'CASH') => {
+    const response = await api.post<Invoice>(`/finance/invoices/${id}/mark-as-paid`, { 
+      payment_method: paymentMethod 
+    });
     return response.data;
   },
 

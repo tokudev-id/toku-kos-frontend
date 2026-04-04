@@ -29,6 +29,7 @@ export function useResidents() {
 
   // Local state for operations
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [ktpFile, setKtpFile] = useState<File | null>(null);
   const [ktpUploading, setKtpUploading] = useState(false);
 
@@ -38,8 +39,7 @@ export function useResidents() {
       const response = await residentService.getResidents(page, 10, search);
       setResidents(response.data);
       setTotal(response.total);
-    } catch (error) {
-      console.error('Failed to fetch residents:', error);
+    } catch {
       setResidents([]);
       setTotal(0);
     } finally {
@@ -58,22 +58,19 @@ export function useResidents() {
     e.preventDefault();
     if (!editingResident) return;
     setSaving(true);
+    setSaveError(null);
     try {
       const form = e.currentTarget as HTMLFormElement;
       const formData = new FormData(form);
       const data = {
-        full_name: formData.get('full_name') as string,
-        email: formData.get('email') as string,
-        phone: formData.get('phone') as string,
-        identity_number: formData.get('identity_number') as string,
         emergency_contact: formData.get('emergency_contact') as string,
         notes: formData.get('notes') as string,
       };
       await residentService.updateResident(editingResident.id, data);
       setEditingResident(null);
       fetchResidents();
-    } catch (err) {
-      console.error(err);
+    } catch {
+      setSaveError('Gagal menyimpan perubahan. Silakan coba lagi.');
     } finally {
       setSaving(false);
     }
@@ -82,12 +79,13 @@ export function useResidents() {
   const onCheckoutConfirm = async () => {
     if (!checkoutResident) return;
     setSaving(true);
+    setSaveError(null);
     try {
       await residentService.checkoutResident(checkoutResident.id);
       setCheckoutResident(null);
       fetchResidents();
-    } catch (err) {
-      console.error(err);
+    } catch {
+      setSaveError('Checkout gagal diproses. Silakan coba lagi.');
     } finally {
       setSaving(false);
     }
@@ -96,13 +94,14 @@ export function useResidents() {
   const onKtpUpload = async () => {
     if (!ktpResident || !ktpFile) return;
     setKtpUploading(true);
+    setSaveError(null);
     try {
       await residentService.uploadKtp(ktpResident.id, ktpFile);
       setKtpFile(null);
       setKtpResident(null);
       fetchResidents();
-    } catch (err) {
-      console.error(err);
+    } catch {
+      setSaveError('Upload KTP gagal. Pastikan file valid lalu coba lagi.');
     } finally {
       setKtpUploading(false);
     }
@@ -135,6 +134,8 @@ export function useResidents() {
     
     // Form management
     saving,
+    saveError,
+    setSaveError,
     ktpFile,
     setKtpFile,
     ktpUploading,

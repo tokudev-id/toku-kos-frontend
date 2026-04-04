@@ -38,7 +38,7 @@ export function ResidentTable({
 
   return (
     <div className="card overflow-visible"> {/* Ensure overflow-visible for dropdowns */}
-      <div className="overflow-x-auto min-h-[400px]"> {/* Min-height helps popover visibility at bottom */}
+      <div className="overflow-x-auto min-h-100"> {/* Min-height helps popover visibility at bottom */}
         <table className="w-full text-left border-separate border-spacing-0">
           <thead className="bg-surface-bg border-b border-border-default sticky top-0 z-10">
             <tr>
@@ -54,7 +54,7 @@ export function ResidentTable({
             {isLoading ? (
               [1, 2, 3, 4, 5].map(i => (
                 <tr key={i} className="animate-pulse">
-                  <td colSpan={5} className="px-md py-6 bg-slate-50/50" />
+                  <td colSpan={6} className="px-md py-6 bg-slate-50/50" />
                 </tr>
               ))
             ) : items.length > 0 ? items.map((resident) => (
@@ -111,32 +111,33 @@ export function ResidentTable({
                   <div className="relative inline-block" ref={openMenuId === resident.id ? menuRef : null}>
                     <button
                       onClick={() => setOpenMenuId(openMenuId === resident.id ? null : resident.id)}
-                      className="p-2 text-text-secondary hover:text-brand-primary hover:bg-brand-primary-soft rounded-lg transition-all"
+                      className="inline-flex h-11 w-11 items-center justify-center text-text-secondary hover:text-brand-primary hover:bg-brand-primary-soft rounded-lg transition-all"
+                      aria-label={`Aksi untuk ${resident.profile?.full_name || resident.full_name || 'penghuni'}`}
                     >
                       <MoreVertical size={18} />
                     </button>
                     {openMenuId === resident.id && (
                       <div className="absolute right-0 top-9 w-44 bg-white border border-border-default rounded-xl shadow-xl py-1 z-30 animate-in fade-in zoom-in duration-100 origin-top-right">
                         <button 
-                          onClick={() => navigate(`/residents/${resident.id}`)} 
+                          onClick={() => { navigate(`/residents/${resident.id}`); setOpenMenuId(null); }} 
                           className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-left"
                         >
                           <Eye size={14} className="text-brand-primary" /> Lihat Detail
                         </button>
-                        <button onClick={() => onEdit(resident)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-left">
+                        <button onClick={() => { onEdit(resident); setOpenMenuId(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-left">
                           <Pencil size={14} /> Edit Data
                         </button>
                         {(resident.profile?.identity_card_url || resident.identity_card_url) ? (
-                          <button onClick={() => onViewKtp(resident)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-left">
+                          <button onClick={() => { onViewKtp(resident); setOpenMenuId(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-left">
                             <Upload size={14} /> Lihat KTP
                           </button>
                         ) : (
-                          <button onClick={() => onUploadKtp(resident)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-left">
+                          <button onClick={() => { onUploadKtp(resident); setOpenMenuId(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-left">
                             <Upload size={14} /> Upload KTP
                           </button>
                         )}
                         {resident.status !== 'CHECKOUT' && (
-                          <button onClick={() => onCheckout(resident)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-danger text-left border-t border-border-muted mt-1">
+                          <button onClick={() => { onCheckout(resident); setOpenMenuId(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 text-danger text-left border-t border-border-muted mt-1">
                             <LogOut size={14} /> Checkout
                           </button>
                         )}
@@ -147,7 +148,7 @@ export function ResidentTable({
               </tr>
             )) : (
               <tr>
-                <td colSpan={5} className="px-md py-12 text-center text-text-secondary italic">
+                <td colSpan={6} className="px-md py-12 text-center text-text-secondary italic">
                   <div className="flex flex-col items-center gap-2">
                      <Users size={32} className="opacity-20 mb-2" />
                      <p>Tidak ada penghuni ditemukan.</p>

@@ -11,6 +11,7 @@ interface KtpModalProps {
   ktpFile: File | null;
   onUpload: () => Promise<void>;
   uploading: boolean;
+  error?: string | null;
 }
 
 export function KtpModal({
@@ -22,8 +23,11 @@ export function KtpModal({
   ktpFile,
   onUpload,
   uploading,
+  error,
 }: KtpModalProps) {
   if (!resident) return null;
+
+  const residentKtpUrl = resident.profile?.identity_card_url || resident.identity_card_url;
 
   return (
     <Modal
@@ -34,9 +38,15 @@ export function KtpModal({
     >
       {viewMode === 'view' ? (
         <div className="space-y-4">
-          <div className="rounded-lg border border-border-default overflow-hidden bg-slate-50">
-            <img src={resident.identity_card_url} alt="KTP" className="w-full h-auto" />
-          </div>
+          {residentKtpUrl ? (
+            <div className="rounded-lg border border-border-default overflow-hidden bg-slate-50">
+              <img src={residentKtpUrl} alt={`Dokumen identitas ${resident.profile?.full_name || resident.full_name || 'penghuni'}`} className="w-full h-auto" />
+            </div>
+          ) : (
+            <div className="rounded-lg border border-border-default bg-slate-50 p-6 text-center text-sm text-text-secondary">
+              Dokumen KTP belum tersedia.
+            </div>
+          )}
           <button onClick={onClose} className="btn-secondary w-full">Tutup</button>
         </div>
       ) : (
@@ -53,6 +63,11 @@ export function KtpModal({
               <p className="text-sm font-bold">{ktpFile ? ktpFile.name : 'Pilih file KTP'}</p>
             </label>
           </div>
+          {error && (
+            <div className="rounded-xl border border-danger/20 bg-danger/10 px-4 py-3 text-sm font-medium text-danger">
+              {error}
+            </div>
+          )}
           <div className="flex gap-3 pt-2">
             <button onClick={onClose} className="btn-secondary flex-1">Batal</button>
             <button

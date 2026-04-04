@@ -11,6 +11,7 @@ import type { Resident } from '@/api/resident.service';
 
 const STATUS_LABELS: Record<InvoiceStatus, string> = {
   UNPAID: 'Belum Bayar',
+  PARTIAL: 'Dibayar Sebagian',
   VERIFICATION_PENDING: 'Menunggu Verifikasi',
   PAID: 'Lunas',
   OVERDUE: 'Jatuh Tempo',
@@ -18,6 +19,7 @@ const STATUS_LABELS: Record<InvoiceStatus, string> = {
 
 const STATUS_CLASSES: Record<InvoiceStatus, string> = {
   UNPAID: 'bg-warning/10 text-warning',
+  PARTIAL: 'bg-brand-primary/10 text-brand-primary',
   VERIFICATION_PENDING: 'bg-blue-100 text-blue-600',
   PAID: 'bg-success/10 text-success',
   OVERDUE: 'bg-danger/10 text-danger',
@@ -27,6 +29,12 @@ const ITEM_CATEGORIES: InvoiceItemCategory[] = ['Sewa', 'Listrik', 'Air', 'Inter
 
 function formatCurrency(amount: number) {
   return `Rp ${amount.toLocaleString('id-ID')}`;
+}
+
+function getInvoiceBillingType(invoice: Invoice): 'Sewa Berulang' | 'Manual' {
+  const hasRentItem = invoice.items?.some((item) => item.category === 'Sewa');
+  const isAutomatic = invoice.items?.some((item) => item.name.toLowerCase().includes('otomatis'));
+  return hasRentItem && isAutomatic ? 'Sewa Berulang' : 'Manual';
 }
 
 export default function Tagihan() {
@@ -109,10 +117,23 @@ export default function Tagihan() {
 
   const handleVerify = async (id: string) => {
     try {
+      if (!confirm('Verifikasi pembayaran ini?')) return;
       await invoiceService.verifyInvoice(id);
       fetchInvoices();
     } catch (e) {
       console.error(e);
+      alert('Gagal verifikasi.');
+    }
+  };
+
+  const handleMarkAsPaid = async (id: string) => {
+    try {
+      if (!confirm('Tandai sebagai lunas? (Sistem akan mencatat sisa tagihan sebagai pembayaran Cash/Offline)')) return;
+      await invoiceService.markAsPaid(id, 'CASH');
+      fetchInvoices();
+    } catch (e) {
+      console.error(e);
+      alert('Gagal menandai lunas.');
     }
   };
 
@@ -210,6 +231,7 @@ export default function Tagihan() {
                 <th className="px-md py-3 text-[11px] font-bold text-text-secondary uppercase">Penghuni</th>
                 <th className="px-md py-3 text-[11px] font-bold text-text-secondary uppercase">Kamar</th>
                 <th className="px-md py-3 text-[11px] font-bold text-text-secondary uppercase">Periode</th>
+                <th className="px-md py-3 text-[11px] font-bold text-text-secondary uppercase">Tipe</th>
                 <th className="px-md py-3 text-[11px] font-bold text-text-secondary uppercase">Total</th>
                 <th className="px-md py-3 text-[11px] font-bold text-text-secondary uppercase">Jatuh Tempo</th>
                 <th className="px-md py-3 text-[11px] font-bold text-text-secondary uppercase">Status</th>
@@ -219,10 +241,10 @@ export default function Tagihan() {
             <tbody className="divide-y divide-border-default">
               {loading ? (
                 [1, 2, 3].map((i) => (
-                  <tr key={i}><td colSpan={8} className="px-md py-4"><div className="h-4 bg-slate-100 animate-pulse rounded" /></td></tr>
+                  <tr key={i}><td colSpan={9} className="px-md py-4"><div className="h-4 bg-slate-100 animate-pulse rounded" /></td></tr>
                 ))
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={8} className="px-md py-8 text-center text-text-secondary">Belum ada tagihan.</td></tr>
+                <tr><td colSpan={9} className="px-md py-8 text-center text-text-secondary">Belum ada tagihan.</td></tr>
               ) : (
                 filtered.map((inv) => (
                   <tr key={inv.id} className="hover:bg-slate-50 transition-colors">
@@ -235,7 +257,19 @@ export default function Tagihan() {
                     <td className="px-md py-4 font-semibold text-sm">{inv.contract?.resident?.full_name ?? '-'}</td>
                     <td className="px-md py-4 text-sm text-text-secondary">{inv.contract?.room?.room_code ?? '-'}</td>
                     <td className="px-md py-4 text-sm text-text-secondary">{inv.period ?? '-'}</td>
-                    <td className="px-md py-4 font-bold text-sm">{formatCurrency(inv.total_amount)}</td>
+                    <td className="px-md py-4">
+                      <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-bold uppercase', getInvoiceBillingType(inv) === 'Sewa Berulang' ? 'bg-brand-primary/10 text-brand-primary' : 'bg-slate-100 text-text-secondary')}>
+                        {getInvoiceBillingType(inv)}
+                      </span>
+                    </td>
+                    <td className="px-md py-4">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-sm">{formatCurrency(inv.total_amount)}</span>
+                        {inv.total_paid && inv.total_paid > 0 ? (
+                          <span className="text-[10px] text-success font-medium">Lunas: {formatCurrency(inv.total_paid)}</span>
+                        ) : null}
+                      </div>
+                    </td>
                     <td className="px-md py-4 text-sm text-text-secondary">{new Date(inv.due_date).toLocaleDateString('id-ID')}</td>
                     <td className="px-md py-4">
                       <span className={cn('flex w-fit items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase', STATUS_CLASSES[inv.status])}>
@@ -263,6 +297,15 @@ export default function Tagihan() {
                         </button>                      <button className="text-brand-primary text-sm font-bold hover:underline" onClick={() => setSelectedInvoice(inv)}>
                         <Eye size={16} />
                       </button>
+                      {(inv.status === 'UNPAID' || inv.status === 'PARTIAL' || inv.status === 'OVERDUE') && (
+                        <button
+                          className="text-success text-xs font-bold hover:underline"
+                          onClick={() => handleMarkAsPaid(inv.id)}
+                          title="Tandai Lunas (Offline/Cash)"
+                        >
+                          Mark Paid
+                        </button>
+                      )}
                       {inv.status === 'VERIFICATION_PENDING' && (
                         <button
                           className="text-success text-xs font-bold hover:underline"
@@ -302,7 +345,7 @@ export default function Tagihan() {
               >
                 <option value="">Pilih penghuni...</option>
                 {residents.map((r) => (
-                  <option key={r.id} value={r.id}>{r.full_name} {r.room ? `(${r.room.room_code})` : ''}</option>
+                  <option key={r.id} value={r.id}>{r.profile?.full_name || r.full_name || '-'} {r.room ? `(${r.room.room_code})` : ''}</option>
                 ))}
               </select>
             </div>
@@ -432,7 +475,17 @@ export default function Tagihan() {
               <div className="flex justify-between text-sm text-success"><span>Diskon</span><span>-{formatCurrency(selectedInvoice.discount ?? 0)}</span></div>
             )}
             <hr className="border-border-default" />
-            <div className="flex justify-between font-bold"><span>Total</span><span>{formatCurrency(selectedInvoice.total_amount)}</span></div>
+            <div className="flex justify-between font-bold text-lg"><span>Total</span><span>{formatCurrency(selectedInvoice.total_amount)}</span></div>
+            
+            {selectedInvoice.total_paid && selectedInvoice.total_paid > 0 ? (
+              <>
+                <div className="flex justify-between text-sm text-success font-medium"><span>Terbayar</span><span>{formatCurrency(selectedInvoice.total_paid)}</span></div>
+                <div className="flex justify-between text-sm text-danger font-bold pt-2 border-t border-dashed border-border-default mt-2">
+                  <span>Sisa Tagihan</span>
+                  <span>{formatCurrency(selectedInvoice.remaining_balance ?? 0)}</span>
+                </div>
+              </>
+            ) : null}
             <div className="flex justify-between text-sm">
               <span className="text-text-secondary">Status</span>
               <span className={cn('px-2 py-0.5 rounded-full text-xs font-bold', STATUS_CLASSES[selectedInvoice.status])}>
